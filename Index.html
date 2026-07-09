@@ -1,0 +1,2346 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Kajian Risiko — PT. Sayap Mas Utama</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+/* ── CSS VARIABLES ─────────────────────────────── */
+:root {
+  --red:        #C8102E;
+  --red-dark:   #9B0C22;
+  --red-light:  #F5C6CE;
+  --black:      #111214;
+  --gray-900:   #1C1E22;
+  --gray-800:   #2A2D33;
+  --gray-700:   #3D4149;
+  --gray-500:   #6B7280;
+  --gray-300:   #B0B7C3;
+  --gray-100:   #F0F2F5;
+  --gray-50:    #F8F9FB;
+  --white:      #FFFFFF;
+  --high:       #C8102E;
+  --high-bg:    #FEE2E6;
+  --medium:     #D97706;
+  --medium-bg:  #FEF3C7;
+  --low:        #059669;
+  --low-bg:     #D1FAE5;
+  --radius:     6px;
+  --radius-lg:  10px;
+  --shadow-sm:  0 1px 3px rgba(0,0,0,.08);
+  --shadow:     0 4px 12px rgba(0,0,0,.10);
+  --shadow-lg:  0 8px 24px rgba(0,0,0,.14);
+  --font:       'IBM Plex Sans', sans-serif;
+  --font-mono:  'IBM Plex Mono', monospace;
+  --transition: 150ms ease;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+.t-input[type="number"] {
+  height: 30px;
+  min-height: 30px;
+}
+.chip-label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  opacity: 0.75;
+  margin-right: 3px;
+  white-space: nowrap;
+}
+
+/* ── RESET ─────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 14px; }
+body {
+  font-family: var(--font);
+  background: var(--gray-50);
+  color: var(--black);
+  line-height: 1.5;
+  min-height: 100vh;
+}
+input, select, textarea, button { font-family: inherit; font-size: inherit; }
+button { cursor: pointer; }
+
+/* ── LAYOUT ────────────────────────────────────── */
+.page-wrap { max-width: 100%; margin: 0 auto; padding: 0 16px 80px; }
+
+/* ── HEADER ────────────────────────────────────── */
+.doc-header {
+  background: var(--white);
+  border-bottom: 3px solid var(--red);
+  margin-bottom: 24px;
+  box-shadow: var(--shadow-sm);
+}
+.header-inner {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: stretch;
+  border: 1px solid #E5E7EB;
+}
+.header-logo {
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-right: 1px solid #E5E7EB;
+  min-width: 100px;
+}
+.header-logo img { height: 56px; width: auto; object-fit: contain; }
+.header-logo-placeholder {
+  height: 56px; width: 80px;
+  background: var(--red);
+  border-radius: 4px;
+  display: flex; align-items: center; justify-content: center;
+  color: white; font-weight: 700; font-size: 11px; text-align: center;
+}
+.header-title {
+  padding: 10px 20px;
+  display: flex; flex-direction: column; justify-content: center;
+  border-right: 1px solid #E5E7EB;
+}
+.header-title .company { font-size: 11px; font-weight: 600; color: var(--red); letter-spacing: .04em; text-transform: uppercase; }
+.header-title .form-title { font-size: 15px; font-weight: 700; color: var(--black); margin-top: 2px; }
+.header-title .dept-line { font-size: 11px; color: var(--gray-500); margin-top: 3px; }
+.header-meta {
+  padding: 8px 16px;
+  display: flex; flex-direction: column; justify-content: center; gap: 4px;
+  min-width: 180px;
+}
+.meta-row { display: flex; justify-content: space-between; gap: 12px; font-size: 11px; }
+.meta-row .label { color: var(--gray-500); font-weight: 500; white-space: nowrap; }
+.meta-row .value { color: var(--black); font-weight: 600; font-family: var(--font-mono); }
+
+/* ── TOP BAR ───────────────────────────────────── */
+.top-bar {
+  display: flex; align-items: center; justify-content: flex-end;
+  margin-bottom: 16px; gap: 12px; flex-wrap: wrap;
+}
+.save-status {
+  font-size: 12px; color: var(--gray-500);
+  display: flex; align-items: center; gap: 6px;
+}
+.save-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--gray-300); flex-shrink: 0; }
+.save-dot.saving { background: var(--medium); animation: pulse 1s infinite; }
+.save-dot.saved  { background: var(--low); }
+.save-dot.error  { background: var(--high); }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+
+/* ── STATUS BADGE ──────────────────────────────── */
+.status-badge {
+  font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 3px;
+  text-transform: uppercase; letter-spacing: .04em;
+}
+.status-active      { background: #DBEAFE; color: #1D4ED8; }
+.status-eliminasi   { background: #F3E8FF; color: #7C3AED; }
+.status-transference{ background: #FEF3C7; color: #92400E; }
+.status-substitute  { background: #D1FAE5; color: #065F46; }
+
+/* ── SCORE DISPLAY ─────────────────────────────── */
+.level-high   { color: var(--high); }
+.level-medium { color: var(--medium); }
+.level-low    { color: var(--low); }
+
+/* ── TABLE VIEW ─────────────────────────────────── */
+.table-outer {
+  overflow-x: auto;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+  border: 1px solid #E5E7EB;
+  background: var(--white);
+}
+
+/* ── SPREADSHEET TABLE ──────────────────────────── */
+.ra-table {
+  border-collapse: collapse;
+  width: max-content;
+  min-width: 100%;
+  font-size: 12px;
+}
+
+.ra-table .col-group-header th {
+  padding: 0;
+  text-align: center;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .07em;
+  border-bottom: none;
+}
+.cgh-identitas    { background: #2A2D33; color: #fff; }
+.cgh-identifikasi { background: #2A2D33; color: #fff; }
+.cgh-dilarang     { background: #92400E; color: #fff; }
+.cgh-eval-before  { background: #7C3AED; color: #fff; }
+.cgh-controls     { background: #065F46; color: #fff; }
+.cgh-eval-after   { background: #1D4ED8; color: #fff; }
+.cgh-action       { background: #111214; color: #fff; }
+
+.cgh-cell {
+  padding: 6px 10px;
+  border-right: 2px solid rgba(255,255,255,.15);
+}
+.cgh-cell:last-child { border-right: none; }
+
+.ra-table .col-header-row th {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: var(--gray-50);
+  padding: 8px 10px;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--gray-700);
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  border-bottom: 2px solid #E5E7EB;
+  border-right: 1px solid #E5E7EB;
+  white-space: nowrap;
+  min-width: var(--col-w, 100px);
+}
+.col-header-row th:last-child { border-right: none; }
+
+.ra-table td.row-num,
+.ra-table th.row-num {
+  position: sticky;
+  left: 0;
+  z-index: 5;
+  background: var(--gray-900);
+  color: var(--gray-300);
+  font-size: 11px;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  text-align: center;
+  min-width: 40px;
+  width: 40px;
+  border-right: 2px solid rgba(255,255,255,.1);
+}
+.ra-table th.row-num {
+  z-index: 15;
+  background: var(--gray-900);
+  color: var(--gray-300);
+}
+
+.ra-table tbody tr { transition: background var(--transition); }
+.ra-table tbody tr:hover { background: #F8F9FB; }
+.ra-table tbody tr:hover td.row-num { background: var(--gray-800); }
+
+.ra-table td {
+  padding: 4px 6px;
+  border-bottom: 1px solid #F0F2F5;
+  border-right: 1px solid #F0F2F5;
+  vertical-align: middle;
+}
+.ra-table td:last-child { border-right: none; }
+
+.ra-table td.group-sep,
+.ra-table th.group-sep {
+  border-right: 2px solid #E5E7EB !important;
+}
+
+.t-input, .t-select, .t-textarea {
+  width: 100%;
+  border: 1px solid transparent;
+  border-radius: 3px;
+  padding: 4px 7px;
+  font-size: 12px;
+  font-family: var(--font);
+  color: var(--black);
+  background: transparent;
+  transition: all var(--transition);
+  min-height: 30px;
+}
+.t-textarea {
+  min-height: 30px;
+  height: 30px;
+}
+.t-input:hover, .t-select:hover, .t-textarea:hover {
+  border-color: #D1D5DB;
+  background: var(--white);
+}
+.t-input:focus, .t-select:focus, .t-textarea:focus,
+.t-input.cell-selected, .t-select.cell-selected, .t-textarea.cell-selected {
+  outline: none;
+  border-color: var(--red);
+  background: var(--white);
+  box-shadow: 0 0 0 2px rgba(200,16,46,.1);
+}
+
+#raTableBody td { outline: none !important; }
+.t-textarea { resize: none; overflow: hidden; min-height: 30px; height: 30px; line-height: 1.4; padding: 6px 7px; }
+.t-select { height: 30px; min-height: 30px; }
+.ra-table tbody td { height: 38px; }
+.t-select { cursor: pointer; }
+
+.t-score {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 13px;
+  text-align: center;
+  padding: 4px 10px;
+  border-radius: 3px;
+}
+.t-score.high   { color: var(--high);   background: var(--high-bg); }
+.t-score.medium { color: var(--medium); background: var(--medium-bg); }
+.t-score.low    { color: var(--low);    background: var(--low-bg); }
+.t-score.neutral{ color: var(--gray-500); background: var(--gray-100); }
+
+.ctrl-chips { display: flex; flex-direction: column; gap: 3px; min-width: 180px; }
+.ctrl-chip {
+  display: flex; align-items: center; gap: 5px;
+  padding: 3px 7px; border-radius: 3px; font-size: 11px;
+  background: var(--gray-100); color: var(--gray-700);
+}
+.ctrl-chip .chip-type { font-weight: 700; color: var(--gray-500); min-width: 20px; }
+.ctrl-chip .chip-act  { color: var(--gray-700); }
+.ctrl-chip-eng   { background: #DBEAFE; color: #1D4ED8; }
+.ctrl-chip-admin { background: #FEF3C7; color: #92400E; }
+.ctrl-chip-ppe   { background: #D1FAE5; color: #065F46; }
+.ctrl-chip-other { background: var(--gray-100); color: var(--gray-500); }
+
+.edit-ctrl-btn {
+  display: flex; align-items: center; gap: 5px;
+  font-size: 11px; font-weight: 600; padding: 4px 10px;
+  background: none; border: 1px solid var(--gray-300);
+  color: var(--gray-500); border-radius: 3px;
+  transition: all var(--transition); white-space: nowrap;
+  margin-top: 4px; cursor: pointer; width: 100%;
+  justify-content: center;
+}
+.edit-ctrl-btn:hover,
+.edit-ctrl-btn.cell-selected { border-color: var(--red); color: var(--red); background: var(--red-light); }
+
+.add-row-btn {
+  display: flex; align-items: center; gap: 8px;
+  padding: 10px 16px; width: 100%;
+  background: var(--gray-50); border: none;
+  border-top: 2px dashed #E5E7EB;
+  color: var(--gray-500); font-size: 12px; font-weight: 600;
+  cursor: pointer; transition: all var(--transition);
+  font-family: var(--font);
+}
+.add-row-btn:hover,
+.add-row-btn.cell-selected { background: var(--gray-100); color: var(--red); border-color: var(--red); outline: 2px solid var(--red); outline-offset: -2px; }
+
+.del-row-btn {
+  background: none; border: none; color: var(--gray-400);
+  font-size: 14px; cursor: pointer; padding: 2px 6px;
+  border-radius: 3px; transition: color var(--transition);
+  line-height: 1;
+}
+.del-row-btn:hover { color: var(--red); background: var(--red-light); }
+
+/* ── INACTIVE ROW ───────────────────────────────── */
+.ra-table tbody tr.row-inactive { opacity: 0.55; }
+.ra-table tbody tr.row-inactive td { background: #F3F4F6 !important; color: var(--gray-400) !important; }
+.ra-table tbody tr.row-inactive td.row-num { background: var(--gray-700) !important; color: var(--gray-500) !important; }
+.ra-table tbody tr.row-inactive .t-input,
+.ra-table tbody tr.row-inactive .t-select,
+.ra-table tbody tr.row-inactive .t-textarea {
+  pointer-events: none; color: var(--gray-400) !important;
+  background: transparent !important; border-color: transparent !important;
+}
+.ra-table tbody tr.row-inactive .edit-ctrl-btn,
+.ra-table tbody tr.row-inactive .ctrl-chip { pointer-events: none; opacity: 0.5; }
+.ra-table tbody tr.row-inactive .t-score { background: var(--gray-100) !important; color: var(--gray-400) !important; }
+
+/* ── CONTROLS MODAL ─────────────────────────────── */
+.modal-overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,.5); z-index: 500;
+  align-items: center; justify-content: center; padding: 20px;
+}
+.modal-overlay.open { display: flex; }
+.modal-box {
+  background: var(--white); border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg); width: 100%; max-width: 700px;
+  max-height: 90vh; overflow-y: auto;
+  animation: slideUp 200ms ease;
+}
+@keyframes slideUp {
+  from { transform: translateY(16px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+.modal-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 20px; border-bottom: 1px solid #E5E7EB;
+  position: sticky; top: 0; background: var(--white); z-index: 10;
+}
+.modal-header h3 { font-size: 15px; font-weight: 700; }
+.modal-close-btn {
+  background: none; border: none; font-size: 20px; color: var(--gray-500);
+  cursor: pointer; line-height: 1; padding: 2px 6px;
+}
+.modal-body { padding: 20px; }
+.modal-footer {
+  padding: 14px 20px; border-top: 1px solid #E5E7EB;
+  display: flex; justify-content: flex-end; gap: 10px;
+  position: sticky; bottom: 0; background: var(--white);
+}
+
+/* ── CONTROL CARD (modal) ───────────────────────── */
+.controls-list { display: flex; flex-direction: column; gap: 12px; }
+.control-card { border: 1px solid #E5E7EB; border-radius: var(--radius); overflow: hidden; }
+.control-card-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 9px 14px; background: var(--gray-100); border-bottom: 1px solid #E5E7EB;
+}
+.control-num { font-size: 11px; font-weight: 700; color: var(--gray-700); }
+.remove-ctrl-btn {
+  background: none; border: none; color: var(--gray-500); font-size: 16px; line-height: 1;
+  padding: 0 4px; border-radius: 3px; transition: color var(--transition);
+}
+.remove-ctrl-btn:hover { color: var(--red); }
+.control-card-body { padding: 14px; }
+.control-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+@media(max-width:480px){ .control-grid { grid-template-columns: 1fr; } }
+
+.add-control-btn {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  width: 100%; padding: 10px; margin-top: 10px;
+  border: 2px dashed #D1D5DB; border-radius: var(--radius);
+  background: none; color: var(--gray-500); font-size: 13px; font-weight: 500;
+  transition: all var(--transition);
+}
+.add-control-btn:hover:not(:disabled) { border-color: var(--red); color: var(--red); background: var(--red-light); }
+.add-control-btn:disabled { opacity: .4; cursor: not-allowed; }
+
+.field { display: flex; flex-direction: column; gap: 5px; }
+.field label { font-size: 11px; font-weight: 600; color: var(--gray-700); text-transform: uppercase; letter-spacing: .04em; }
+.field label .req { color: var(--red); margin-left: 2px; }
+.field input, .field select, .field textarea {
+  border: 1px solid #D1D5DB; border-radius: var(--radius);
+  padding: 8px 11px; font-size: 13px; color: var(--black);
+  background: var(--white); transition: border-color var(--transition), box-shadow var(--transition); width: 100%;
+}
+.field input:focus, .field select:focus, .field textarea:focus {
+  outline: none; border-color: var(--red); box-shadow: 0 0 0 3px rgba(200,16,46,.1);
+}
+.field textarea { resize: vertical; min-height: 68px; }
+.span-2 { grid-column: span 2; }
+
+/* ── SUBMIT BAR ─────────────────────────────────── */
+.submit-bar {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  background: var(--white); border-top: 1px solid #E5E7EB;
+  padding: 12px 16px; display: flex; align-items: center; justify-content: flex-end; gap: 12px;
+  box-shadow: 0 -4px 16px rgba(0,0,0,.08); z-index: 100;
+}
+.btn-save {
+  padding: 9px 22px; border: 1px solid var(--gray-300);
+  background: var(--white); color: var(--black);
+  border-radius: var(--radius); font-size: 13px; font-weight: 600;
+  transition: all var(--transition);
+}
+.btn-save:hover { background: var(--gray-100); }
+.btn-submit {
+  padding: 9px 26px; background: var(--red); color: white;
+  border: none; border-radius: var(--radius); font-size: 13px; font-weight: 700;
+  transition: background var(--transition), transform var(--transition);
+  box-shadow: var(--shadow-sm);
+}
+.btn-submit:hover { background: var(--red-dark); transform: translateY(-1px); }
+.btn-submit:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+
+/* ── TOAST ──────────────────────────────────────── */
+.toast {
+  position: fixed; bottom: 76px; right: 16px;
+  background: var(--gray-900); color: white;
+  padding: 10px 18px; border-radius: var(--radius);
+  font-size: 13px; font-weight: 500; box-shadow: var(--shadow-lg);
+  transform: translateY(20px); opacity: 0; transition: all 300ms ease;
+  z-index: 200; pointer-events: none;
+}
+.toast.show { transform: translateY(0); opacity: 1; }
+.toast.success { border-left: 3px solid var(--low); }
+.toast.error   { border-left: 3px solid var(--red); }
+</style>
+</head>
+
+<body>
+<div class="page-wrap">
+
+  <!-- HEADER -->
+  <div class="doc-header">
+    <div class="header-inner">
+      <div class="header-logo" id="logoWrap">
+        <div class="header-logo-placeholder" id="logoPlaceholder">WINGS</div>
+      </div>
+      <div class="header-title">
+        <span class="company">PT. Sayap Mas Utama</span>
+        <span class="form-title">Formulir Kajian Risiko / Risk Assessment</span>
+        <span class="dept-line">Dept: <strong id="deptDisplay">—</strong></span>
+      </div>
+      <div class="header-meta">
+        <div class="meta-row"><span class="label">No. Dokumen</span><span class="value">SMU/IMS-00/06-013</span></div>
+        <div class="meta-row"><span class="label">Revisi</span><span class="value">01</span></div>
+        <div class="meta-row"><span class="label">Tgl. Update</span><span class="value" id="lastUpdateDate">—</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOP BAR (save status only) -->
+  <div class="top-bar">
+    <div class="save-status">
+      <div class="save-dot" id="saveDot"></div>
+      <span id="saveStatusText">Belum disimpan</span>
+    </div>
+  </div>
+
+  <!-- TABLE VIEW -->
+  <div id="tableView">
+    <div class="table-outer">
+      <table class="ra-table" id="raTable">
+        <thead>
+          <tr class="col-group-header">
+            <th class="row-num" rowspan="2">#</th>
+            <th colspan="2" class="cgh-cell cgh-action">Status</th>
+            <th colspan="5" class="cgh-cell cgh-identitas group-sep">Identitas</th>
+            <th colspan="4" class="cgh-cell cgh-identifikasi group-sep">Identifikasi Bahaya</th>
+            <th colspan="4" class="cgh-cell cgh-dilarang group-sep">Kategori Dilarang</th>
+            <th colspan="4" class="cgh-cell cgh-eval-before group-sep">Evaluasi Sebelum</th>
+            <th colspan="1" class="cgh-cell cgh-controls group-sep">Pengendalian</th>
+            <th colspan="4" class="cgh-cell cgh-eval-after group-sep">Evaluasi Sesudah</th>
+          </tr>
+          <tr class="col-header-row" id="colHeaderRow">
+            <th style="--col-w:100px">Status</th>
+            <th style="--col-w:44px" class="group-sep"></th>
+            <th style="--col-w:130px">Working Area</th>
+            <th style="--col-w:120px">Job Title</th>
+            <th style="--col-w:130px">Workstation</th>
+            <th style="--col-w:130px">Aktivitas</th>
+            <th style="--col-w:70px" class="group-sep">R/NR</th>
+            <th style="--col-w:110px">Kategori</th>
+            <th style="--col-w:200px">Asumsi/Bahaya</th>
+            <th style="--col-w:150px">Dampak</th>
+            <th style="--col-w:70px">Jml Terpapar</th>
+            <th style="--col-w:52px">Ibu Hamil</th>
+            <th style="--col-w:52px">Ibu Menyusui</th>
+            <th style="--col-w:52px">Peny. Khusus</th>
+            <th style="--col-w:52px" class="group-sep">Disabilitas</th>
+            <th style="--col-w:70px">ROP</th>
+            <th style="--col-w:70px">RS</th>
+            <th style="--col-w:80px">Score</th>
+            <th style="--col-w:90px" class="group-sep">Level</th>
+            <th style="--col-w:220px" class="group-sep">Risk Controls</th>
+            <th style="--col-w:70px">ROP</th>
+            <th style="--col-w:70px">RS</th>
+            <th style="--col-w:80px">Score</th>
+            <th style="--col-w:90px">Level</th>
+          </tr>
+        </thead>
+        <tbody id="raTableBody"></tbody>
+      </table>
+      <button class="add-row-btn" id="addRowBtn">+ Tambah Baris Risiko</button>
+    </div>
+  </div>
+
+</div>
+
+<!-- CONTROLS MODAL -->
+<div class="modal-overlay" id="ctrlModal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h3 id="ctrlModalTitle">Edit Pengendalian Risiko</h3>
+      <button class="modal-close-btn" onclick="closeCtrlModal()">✕</button>
+    </div>
+    <div class="modal-body" id="ctrlModalBody"></div>
+    <div class="modal-footer">
+      <button class="btn-save" onclick="closeCtrlModal()">Selesai</button>
+    </div>
+  </div>
+</div>
+
+<!-- SUBMIT BAR -->
+<div class="submit-bar">
+  <button class="btn-save" id="downloadBtn" onclick="downloadExcel()" style="display:none">⬇ Download Excel</button>
+  <button class="btn-submit" id="submitBtn" onclick="submitForm()">Kirim Kajian Risiko →</button>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ── CONSTANTS ────────────────────────────────────────────────
+const ROP_LEVELS = [10, 8, 6, 4, 1];
+const RS_LEVELS  = [100, 40, 21, 8, 2];
+
+const ROP_LABELS = {
+  10: 'Kejadian bisa terjadi di setiap shift',
+  8:  'Kejadian bisa terjadi 1-2 kali dalam 1 bulan',
+  6:  'Kejadian bisa terjadi 1-2 kali dalam 1 tahun',
+  4:  'Kejadian bisa terjadi sekali dalam 2 tahun',
+  1:  'Kejadian kecil kemungkinan terjadi dalam waktu kurang dari 2-5 tahun',
+};
+
+const RS_LABELS_BY_KATEGORI = {
+  'Quality': {
+    100: 'Kejadian recall yang berisiko berdampak pada kesehatan konsumen',
+    40:  'Kejadian recall yang tidak berisiko berdampak pada kesehatan konsumen namun berdampak pada brand',
+    21:  'Komplain dari konsumen terkait kualitas atau kuantitas produk',
+    8:   'Produksi menghasilkan produk tidak sesuai standar QC (In Process Control) Defect Major',
+    2:   'Produksi menghasilkan produk tidak sesuai standar QC (In Process Control) Defect Minor',
+  },
+  'Halal': {
+    100: 'Kejadian recall akibat adanya cemaran bahan haram yang berakibat logo halal dicabut',
+    40:  'Kejadian recall akibat adanya cemaran bahan haram yang berdampak pada brand',
+    21:  'Kejadian recall akibat adanya cemaran bahan haram yang tidak berdampak pada brand',
+    8:   'Menyebabkan cemaran najis berat dan sedang ke produk/fasilitas',
+    2:   'Menyebabkan cemaran material tidak halal atau belum di-inquiry ke produk/fasilitas',
+  },
+  'OS Proses & Human': {
+    100: 'Bisa mengakibatkan kematian akibat kecelakaan',
+    40:  'Dapat menyebabkan kecelakaan parah yang menyebabkan cacat tetap',
+    21:  'Dapat menyebabkan kecelakaan dengan kehilangan jam kerja',
+    8:   'Dapat menyebabkan kecelakaan tanpa kehilangan waktu kerja: cedera yang memerlukan perawatan medis',
+    2:   'Dapat menyebabkan cedera ringan membutuhkan pertolongan pertama',
+  },
+  'OH': {
+    100: 'Bisa mengakibatkan kematian akibat penyakit',
+    40:  'Dapat menyebabkan penyakit parah kronis (pneumonia, kebutaan, keguguran, tuli, kanker, dll)',
+    21:  'Dapat menyebabkan penyakit yang membuat pekerja tidak dapat kembali ke pekerjaan biasa',
+    8:   'Dapat menyebabkan sakit sementara tanpa kehilangan waktu kerja yang memerlukan perawatan medis',
+    2:   'Dapat menyebabkan sakit yang membutuhkan pertolongan pertama',
+  },
+  'ENV': {
+    100: 'Terjadi tumpahan cemaran yang masuk ke badan lingkungan dan dapat mengakibatkan issue eksternal sampai ke ranah hukum',
+    40:  'Terjadi tumpahan cemaran yang masuk ke badan lingkungan, sudah menimbulkan issue eksternal namun masih dapat diatasi dengan/tanpa bantuan pihak ketiga',
+    21:  'Terjadi tumpahan cemaran yang masih dapat diatasi internal dan belum masuk ke badan lingkungan',
+    8:   'Terjadi insiden yang berpotensi dapat menyebabkan tumpahan cemaran',
+    2:   'Terdapat kondisi tidak safe (unsafe condition dan action) yang berpotensi dapat menimbulkan insiden tumpahan cemaran',
+  },
+};
+
+const ASUMSI_BY_KATEGORI = {
+  'Quality': [
+    'Machine - Alat tidak terkalibrasi / terverifikasi',
+    'Material - Bahan / reagen expired',
+    'Material - Bahan awal (BB / BK) tidak sesuai spesifikasi',
+    'Material - Bahan baku tidak tersedia',
+    'Material - Dokumen tidak lengkap / sesuai',
+    'Material - Jumlah dan atau jenis bahan atau produk tidak sesuai',
+    'Kapasitas storage / area / ruangan overload',
+    'Material - Kerusakan kemasan bahan / produk',
+    'Methode - Kesalahan methode / cara kerja',
+    'Material - Kesalahan pemesanan material / jasa',
+    'Material - Keterlambatan kedatangan',
+    'Material - Kontaminasi kotoran / najis / bahan tidak halal',
+    'Material - Mixed up (ketercampurbauran)',
+    'Man - Salah pemberian identitas / status',
+    'Methode - Sampel tidak representatif (mewakili)',
+    'Man - Tidak dilakukan record / tidak sesuai waktunya',
+    'Machine - Tidak sesuai centerline mesin',
+    'Material - Tidak sesuai spesifikasi produk (OOS)',
+    'Material - Cost proses / bahan tinggi',
+    'Machine - Kerusakan equipment, mesin, instrumen',
+    'Material - Perubahan identitas bahan / produk',
+    'Methode - Perubahan jadwal',
+    'Man - Kesalahan penentuan otorisasi',
+  ],
+  'Halal': [
+    'Material - Dokumen pendukung bahan/material expired',
+    'Material - Dokumen pendukung bahan/material tidak lengkap',
+    'Material - Bahan baku dan bahan kemas primer belum terdaftar ke bahan halal',
+    'Material - Bahan baku terkontaminasi najis',
+    'Material - Kemasan primer terkontaminasi najis',
+    'Machine - Equipment dan storage terpapar kotoran & najis',
+    'Material - Kontaminasi dari personil',
+    'Material - Terkontaminasi cairan pelumas',
+    'Material - Terkontaminasi bahan pembersih / sanitizer',
+    'Material - Campur baur dengan bahan/produk tidak halal',
+  ],
+  'OS Proses & Human': [
+    'A-Anggota tubuh terkena pentalan benda berputar',
+    'A-Menginjak benda tajam',
+    'A-Tangan tergores material',
+    'A-Terjepit Benda Bergerak',
+    'A-Terjepit Benda Berputar',
+    'A-Terjepit material',
+    'A-Tersayat Benda Tajam',
+    'B-Terbentur',
+    'B-Tertimpa Benda Jatuh',
+    'C-Tertabrak Forklift',
+    'C-Tertabrak Hand Pallet Manual',
+    'C-Tertabrak Kendaraan Eksternal',
+    'C-Tertabrak Kendaraan Operasional',
+    'C-Tertabrak Pallet Mover',
+    'D-Terjatuh pada ketinggian berbeda',
+    'D-Terjatuh pada ketinggian sama',
+    'D-Terpeleset',
+    'D-Tersandung',
+    'E-Badan terpapar bahan kimia',
+    'E-Badan Terpercik Api',
+    'E-Ledakan (Heat)',
+    'E-Ledakan (Pencampuran Bahan Kimia)',
+    'E-Ledakan (Pressure)',
+    'E-Ledakan (Proses)',
+    'E-Mata Terpercik api',
+    'E-Mata terpercik bahan kimia',
+    'E-Tangan terpapar bahan kimia',
+    'E-Tangan Terpercik api',
+    'E-Terkena Permukaan Panas',
+    'E-Terpapar Serpihan Tajam',
+    'E-Tersengat Listrik',
+    'E-Wajah terpapar bahan kimia',
+    'F-Kebakaran',
+    'Keadaan Darurat',
+  ],
+  'OH': [
+    'Ergonomi-Mengangkat melebihi kapasitas',
+    'Ergonomi-Posisi salah saat mengangkat',
+    'Ergonomi-Posisi tubuh Aneh/Canggung',
+    'Ergonomi-Repetisi pekerjaan',
+    'Fisika-ISBB (Suhu Tubuh)',
+    'Fisika-ISBB (Terpapar panas)',
+    'Fisika-Pencahayaan Tidak Memadai',
+    'Fisika-Suhu Lingkungan Udara Dingin',
+    'Fisika-Suhu Lingkungan Udara Panas',
+    'Fisika-Terpapar getaran',
+    'Fisika-Terpapar Kebisingan',
+    'Fisika-Terpapar Radiasi',
+    'Fisika-Terpapar Radiasi Elektro Magnetik',
+    'Kimia-Terpapar Debu',
+    'Kimia-Terpapar kebauan area',
+    'Kimia-Terhirup asap',
+    'Biologi-Terpapar oleh mikroorganisme',
+    'Psikologi-Beban Kerja Berlebih',
+    'Fisika-Terpapar Debu',
+    'Kimia-Terpapar Uap',
+    'Kimia-Terpapar Gas',
+  ],
+  'ENV': [
+    'B3-Pencemaran bahan kimia (B3) cair',
+    'B3-Pencemaran bahan kimia (B3) padat',
+    'EA-Penggunaan Air Bersih',
+    'EF-Penggunaan Bahan Bakar Solar',
+    'EG-Penggunaan Gas LPG/Gas PGN',
+    'EL-Penggunaan Energi Listrik',
+    'LB3-Pencemaran Limbah B3 Cair',
+    'LB3-Pencemaran Limbah B3 Padat',
+    'PPA-Pencemaran material cair ke badan air',
+    'PPA-Pencemaran material cair ke drainase',
+    'PPA-Pencemaran material padat ke drainase',
+    'PPU-Pencemaran Udara dari Sumber bergerak',
+    'PPU-Pencemaran Udara dari Sumber Tidak Bergerak',
+    'PPU-Tercemar Kebauan Lingkungan',
+    'PPU-Tercemar Kebisingan Lingkungan',
+    'SP-Menimbulkan Sampah recycle (plastik, kertas)',
+    'SP-Menimbulkan Sampah Residu (sampah yang tidak bisa di daur ulang)',
+  ],
+};
+
+const KATEGORI_BY_STRATEGI = {
+  'Avoidance':    ['Eliminasi'],
+  'Mitigate':     ['Subtitusi', 'Engineering Control', 'Administration Control'],
+  'Acceptance':   ['Administration Control', 'PPE / APD'],
+  'Transference': [],
+};
+
+// ── STATE ────────────────────────────────────────────────────
+let raId      = '<?= raId ?>';
+let returnUrl = '<?= returnUrl ?>';
+let logoB64   = '<?= logoB64 ?>';
+let fupNo     = '<?= fupNo ?>';
+let fupLink   = '<?= fupLink ?>';
+let dept      = '<?= fupDept ?>';
+let risks     = [];
+let autoSaveTimer = null;
+let riskCounter   = 0;
+
+// ── INIT ─────────────────────────────────────────────────────
+window.onload = function() {
+  // Set logo
+  if (logoB64 && logoB64.length > 100) {
+    const img = document.createElement('img');
+    img.src = logoB64;
+    img.alt = 'Wings Logo';
+    const wrap = document.getElementById('logoWrap');
+    wrap.innerHTML = '';
+    wrap.appendChild(img);
+  }
+
+  document.getElementById('lastUpdateDate').textContent = formatDate(new Date());
+  if (dept) document.getElementById('deptDisplay').textContent = dept;
+
+  document.getElementById('addRowBtn').addEventListener('click', function() {
+    addRiskCard();
+    selectedCell = null;
+    editMode = false;
+    renderTable();
+  });
+
+  google.script.run
+    .withSuccessHandler(onDataLoaded)
+    .withFailureHandler(onLoadError)
+    .loadRaData(raId);
+};
+
+function onDataLoaded(result) {
+  if (result.dept) {
+    dept = result.dept;
+    document.getElementById('deptDisplay').textContent = dept;
+  }
+  if (result.allRisks && result.allRisks.length > 0) {
+    result.allRisks.forEach(function(r) { loadExistingData(r); });
+  } else if (result.data) {
+    loadExistingData(result.data);
+  } else {
+    addRiskCard();
+    renderTable();
+  }
+  checkFupStatusForDownload();
+}
+
+function checkFupStatusForDownload() {
+  if (!raId) return;
+  google.script.run
+    .withSuccessHandler(function(status) {
+      const allowed = ['Monitoring', 'Monitoring (Revision)', 'Pending Coordinator (Evidence)', 'Closed'];
+      const btn = document.getElementById('downloadBtn');
+      if (btn) {
+        btn.style.display = allowed.includes(status) ? '' : 'none';
+      }
+    })
+    .withFailureHandler(function() {})
+    .getFupStatus(raId);
+}
+
+function onLoadError(err) {
+  showToast('Gagal memuat data: ' + err, 'error');
+  addRiskCard();
+  renderTable();
+}
+
+// ── RISK MANAGEMENT ──────────────────────────────────────────
+function addRiskCard(existingData) {
+  riskCounter++;
+  const id = 'risk_' + Date.now() + '_' + riskCounter;
+  const risk = existingData || {
+    id: id, workingArea: '', jobTitle: '', workstation: '',
+    aktivitas: '', rutin: '', kategoriRisiko: '', assumsiBahaya: '',
+    dampak: '', jmlTerpapar: '', ibuHamil: '', ibuMenyusui: '',
+    penyakitKhusus: '', disabilitas: '',
+    ropBefore: '', rsBefore: '',
+    riskControls: [],
+  };
+  if (!risk.id) risk.id = id;
+  risks.push(risk);
+  triggerAutoSave();
+}
+
+function removeRiskCard(riskId) {
+  if (risks.length <= 1) { showToast('Minimal harus ada 1 risiko', 'error'); return; }
+  risks = risks.filter(r => r.id !== riskId);
+  selectedCell = null;
+  editMode = false;
+  renderTable();
+  triggerAutoSave();
+}
+
+// ── LOAD EXISTING DATA ───────────────────────────────────────
+function loadExistingData(data) {
+  const risk = {
+    id:             'risk_loaded_' + Date.now(),
+    workingArea:    data.workingArea    || '',
+    jobTitle:       data.jobTitle       || '',
+    workstation:    data.workstation    || '',
+    aktivitas:      data.aktivitas      || '',
+    rutin:          data.rutin          || '',
+    kategoriRisiko: data.kategoriRisiko || '',
+    assumsiBahaya:  data.assumsiBahaya  || '',
+    dampak:         data.dampak         || '',
+    jmlTerpapar:    data.jmlTerpapar    || '',
+    ibuHamil:       data.ibuHamil       || '',
+    ibuMenyusui:    data.ibuMenyusui    || '',
+    penyakitKhusus: data.penyakitKhusus || '',
+    disabilitas:    data.disabilitas    || '',
+    ropBefore:      data.ropBefore      || '',
+    rsBefore:       data.rsBefore       || '',
+    riskControls:   Array.isArray(data.riskControls) ? data.riskControls : [],
+  };
+  risks.push(risk);
+  renderTable();
+}
+
+// ── AUTOSAVE ─────────────────────────────────────────────────
+function triggerAutoSave() {
+  clearTimeout(autoSaveTimer);
+  setSaveStatus('saving');
+  autoSaveTimer = setTimeout(doSave, 1800);
+}
+
+function doSave() {
+  setSaveStatus('saving');
+  const payload = buildPayload(false);
+  google.script.run
+    .withSuccessHandler(function(res) {
+      if (res.success) {
+        if (res.raId) raId = res.raId;
+        setSaveStatus('saved', 'Tersimpan ' + formatTime(new Date()));
+      } else {
+        setSaveStatus('error', 'Gagal simpan');
+      }
+    })
+    .withFailureHandler(function() { setSaveStatus('error', 'Gagal simpan'); })
+    .autoSaveRa(payload);
+}
+
+function setSaveStatus(state, text) {
+  const dot  = document.getElementById('saveDot');
+  const span = document.getElementById('saveStatusText');
+  dot.className = 'save-dot ' + state;
+  span.textContent = text || (state === 'saving' ? 'Menyimpan...' : state === 'saved' ? 'Tersimpan' : 'Gagal simpan');
+}
+
+// ── SUBMIT ────────────────────────────────────────────────────
+function submitForm() {
+  clearTimeout(autoSaveTimer);
+  autoSaveTimer = null;
+  for (let i = 0; i < risks.length; i++) {
+    const r = risks[i];
+    const isOH = r.kategoriRisiko === 'OH' || r.kategoriRisiko === 'OS Proses & Human';
+    if (!r.workingArea || !r.jobTitle || !r.aktivitas || !r.rutin ||
+        !r.kategoriRisiko || !r.assumsiBahaya || !r.dampak ||
+        !r.ropBefore || !r.rsBefore ||
+        (isOH && !r.jmlTerpapar)) {
+      showToast('Risiko #' + (i + 1) + ': Harap lengkapi semua field wajib', 'error');
+      return;
+    }
+  }
+
+  lockForm_();
+
+  const submitBtn = document.getElementById('submitBtn');
+  submitBtn.innerHTML = '<span style="display:inline-flex;align-items:center;gap:8px;">'
+    + '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" '
+    + 'style="animation:spin 1s linear infinite"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83'
+    + 'M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>'
+    + 'Menyimpan & Mengirim...</span>';
+
+  const payload = buildPayload(true);
+  google.script.run
+    .withSuccessHandler(function(res) {
+      if (res.success) {
+        showSubmitSuccess_();
+      } else {
+        showToast('Error: ' + res.error, 'error');
+        unlockForm_();
+        submitBtn.innerHTML = 'Kirim Kajian Risiko →';
+      }
+    })
+    .withFailureHandler(function(err) {
+      showToast('Gagal kirim: ' + err, 'error');
+      unlockForm_();
+      submitBtn.innerHTML = 'Kirim Kajian Risiko →';
+    })
+    .submitRa(payload);
+}
+
+function lockForm_() {
+  document.querySelectorAll('#raTableBody input, #raTableBody select, #raTableBody textarea, #raTableBody button').forEach(function(el) {
+    el.disabled = true;
+  });
+  const addBtn = document.getElementById('addRowBtn');
+  if (addBtn) addBtn.disabled = true;
+  document.querySelectorAll('.submit-bar button').forEach(function(el) {
+    el.disabled = true;
+  });
+}
+
+function unlockForm_() {
+  document.querySelectorAll('#raTableBody input, #raTableBody select, #raTableBody textarea, #raTableBody button').forEach(function(el) {
+    el.disabled = false;
+  });
+  const addBtn = document.getElementById('addRowBtn');
+  if (addBtn) addBtn.disabled = false;
+  document.querySelectorAll('.submit-bar button').forEach(function(el) {
+    el.disabled = false;
+  });
+}
+
+function showSubmitSuccess_() {
+  const wrap = document.querySelector('.page-wrap');
+  wrap.innerHTML = `
+    <div style="
+      min-height: 80vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 40px 20px;
+      gap: 20px;
+    ">
+      <div style="
+        width: 72px; height: 72px; border-radius: 50%;
+        background: #D1FAE5;
+        display: flex; align-items: center; justify-content: center;
+        margin-bottom: 8px;
+      ">
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M20 6L9 17l-5-5"/>
+        </svg>
+      </div>
+
+      <div>
+        <div style="font-size: 22px; font-weight: 700; color: #111214; margin-bottom: 8px;">
+          Kajian Risiko Berhasil Dikirim!
+        </div>
+        <div style="font-size: 14px; color: #6B7280; max-width: 360px; line-height: 1.6;">
+          Semua data risiko telah disimpan dan dikirim.
+        </div>
+      </div>
+
+      <div style="
+        background: #F0FDF4;
+        border: 1px solid #BBF7D0;
+        border-radius: 10px;
+        padding: 14px 20px;
+        font-size: 13px;
+        color: #065F46;
+        max-width: 360px;
+        line-height: 1.6;
+      ">
+        <strong>Langkah selanjutnya:</strong><br>
+        Kembali ke form utama dan lanjutkan pengisian dokumen FUP untuk disubmit ke Koordinator.
+      </div>
+    </div>
+  `;
+
+  const bar = document.querySelector('.submit-bar');
+  if (bar) bar.style.display = 'none';
+}
+
+function buildPayload(isSubmit) {
+  const allRisks = risks.map(r => {
+    const after = computeEvalAfter(r.ropBefore, r.rsBefore, r.riskControls || []);
+    return {
+      riskLocalId:    r.id,
+      workingArea:    r.workingArea    || '',
+      jobTitle:       r.jobTitle       || '',
+      workstation:    r.workstation    || '',
+      aktivitas:      r.aktivitas      || '',
+      rutin:          r.rutin          || '',
+      kategoriRisiko: r.kategoriRisiko || '',
+      assumsiBahaya:  r.assumsiBahaya  || '',
+      dampak:         r.dampak         || '',
+      jmlTerpapar:    r.jmlTerpapar    || '',
+      ibuHamil:       r.ibuHamil       || '',
+      ibuMenyusui:    r.ibuMenyusui    || '',
+      penyakitKhusus: r.penyakitKhusus || '',
+      disabilitas:    r.disabilitas    || '',
+      ropBefore:      r.ropBefore      || '',
+      rsBefore:       r.rsBefore       || '',
+      scoreBefore:    (Number(r.ropBefore) * Number(r.rsBefore)) || '',
+      levelBefore:    (r.ropBefore && r.rsBefore ? computeLevel(Number(r.ropBefore) * Number(r.rsBefore)) : ''),
+      riskControls:   r.riskControls   || [],
+      ropAfter:       after.ropAfter,
+      rsAfter:        after.rsAfter,
+      scoreAfter:     after.scoreAfter,
+      levelAfter:     after.levelAfter,
+    };
+  });
+
+  const r = allRisks[0] || {};
+  return {
+    raId:        raId,
+    dept:        dept,
+    fupNo:       fupNo,
+    fupLink:     fupLink,
+    isSubmitted: isSubmit,
+    allRisks:    allRisks,
+    ...r,
+  };
+}
+
+// ── EVALUATION LOGIC ─────────────────────────────────────────
+function computeEvalAfter(ropBefore, rsBefore, controls) {
+  let ropIdx = ROP_LEVELS.indexOf(Number(ropBefore));
+  let rsIdx  = RS_LEVELS.indexOf(Number(rsBefore));
+  if (ropIdx < 0) ropIdx = 0;
+  if (rsIdx  < 0) rsIdx  = 0;
+
+  let hasAdmin = false;
+  let hasPPE   = false;
+
+  controls.forEach(function(c) {
+    const strat = (c.strategi || '').toLowerCase();
+    const kat   = (c.kategori || '').toLowerCase();
+
+    if (strat === 'mitigate' && kat === 'engineering control') {
+      ropIdx = Math.min(ropIdx + 1, ROP_LEVELS.length - 1);
+      rsIdx  = Math.min(rsIdx  + 1, RS_LEVELS.length  - 1);
+    }
+    if ((strat === 'mitigate' || strat === 'acceptance') && kat === 'administration control') {
+      if (!hasAdmin) {
+        ropIdx = Math.min(ropIdx + 1, ROP_LEVELS.length - 1);
+        hasAdmin = true;
+      }
+    }
+    if (strat === 'acceptance' && kat === 'ppe / apd') {
+      if (!hasPPE) {
+        rsIdx = Math.min(rsIdx + 1, RS_LEVELS.length - 1);
+        hasPPE = true;
+      }
+    }
+  });
+
+  return {
+    ropAfter:   ROP_LEVELS[ropIdx],
+    rsAfter:    RS_LEVELS[rsIdx],
+    scoreAfter: ROP_LEVELS[ropIdx] * RS_LEVELS[rsIdx],
+    levelAfter: computeLevel(ROP_LEVELS[ropIdx] * RS_LEVELS[rsIdx]),
+  };
+}
+
+function computeLevel(score) {
+  if (score >= 210) return 'High';
+  if (score >= 20)  return 'Medium';
+  return 'Low';
+}
+
+function levelClass(level) {
+  if (level === 'High')   return 'level-high';
+  if (level === 'Medium') return 'level-medium';
+  return 'level-low';
+}
+
+function levelEmoji(level) {
+  if (level === 'High')   return '🔴';
+  if (level === 'Medium') return '🟠';
+  return '🟢';
+}
+
+function computeStatus(risk) {
+  if (!risk.assumsiBahaya) return '';
+  let hasEliminasi = false, hasTransfer = false, hasSub = false;
+  (risk.riskControls || []).forEach(function(c) {
+    const strat = (c.strategi || '').toLowerCase();
+    const kat   = (c.kategori || '').toLowerCase();
+    if (strat === 'avoidance'   && kat === 'eliminasi') hasEliminasi = true;
+    if (strat === 'transference')                        hasTransfer  = true;
+    if (strat === 'mitigate'    && kat === 'subtitusi') hasSub       = true;
+  });
+  if (hasEliminasi) return 'Eliminasi';
+  if (hasTransfer)  return 'Transference';
+  if (hasSub)       return 'Substitute';
+  return 'Active';
+}
+
+// ── TABLE RENDERING ───────────────────────────────────────────
+function renderTable() {
+  const tbody = document.getElementById('raTableBody');
+  tbody.innerHTML = '';
+  risks.forEach((risk, idx) => {
+    tbody.appendChild(buildTableRow(risk, idx));
+  });
+  autoGrowAll();
+  document.querySelectorAll('#raTableBody textarea').forEach(function(el) {
+    el.spellcheck = false;
+  });
+}
+
+function buildTableRow(risk, idx) {
+  const tr = document.createElement('tr');
+  tr.id = 'trow_' + risk.id;
+
+  const rop = Number(risk.ropBefore);
+  const rs  = Number(risk.rsBefore);
+  const scoreBefore = rop && rs ? rop * rs : null;
+  const levelBefore = scoreBefore ? computeLevel(scoreBefore) : null;
+  const after = (rop && rs) ? computeEvalAfter(rop, rs, risk.riskControls || []) : null;
+
+  const kategoriOpts = ['Quality','Halal','OS Proses & Human','OH','ENV'];
+  const ropOpts = [10,8,6,4,1];
+  const rsOpts  = [100,40,21,8,2];
+  const isOH = risk.kategoriRisiko === 'OH' || risk.kategoriRisiko === 'OS Proses & Human';
+
+  const status = computeStatus(risk);
+  const inactive = status === 'Eliminasi' || status === 'Transference' || status === 'Substitute';
+  if (inactive) tr.classList.add('row-inactive');
+
+  tr.innerHTML = `
+    <td class="row-num">${idx + 1}</td>
+
+    <td style="white-space:nowrap;padding:6px 8px;">
+      ${status ? `<span class="status-badge status-${status.toLowerCase()}" id="tbl_status_${risk.id}">${status}</span>` : `<span id="tbl_status_${risk.id}"></span>`}
+    </td>
+    <td class="group-sep" style="text-align:center;padding:4px;">
+      <button class="del-row-btn" title="Hapus baris" onclick="removeRiskCard('${risk.id}')">✕</button>
+    </td>
+
+    <td><textarea class="t-textarea" style="min-width:120px"
+      onchange="tblField('${risk.id}','workingArea',this.value)"
+      oninput="autoGrow(this)" placeholder="Working area…">${esc(risk.workingArea)}</textarea></td>
+    <td><textarea class="t-textarea" style="min-width:110px"
+      onchange="tblField('${risk.id}','jobTitle',this.value)"
+      oninput="autoGrow(this)" placeholder="Job title…">${esc(risk.jobTitle)}</textarea></td>
+    <td><textarea class="t-textarea" style="min-width:120px"
+      onchange="tblField('${risk.id}','workstation',this.value)"
+      oninput="autoGrow(this)" placeholder="Mesin/instrumen…">${esc(risk.workstation)}</textarea></td>
+    <td><textarea class="t-textarea" style="min-width:120px;min-height:30px"
+      onchange="tblField('${risk.id}','aktivitas',this.value)"
+      oninput="autoGrow(this)" placeholder="Aktivitas…">${esc(risk.aktivitas)}</textarea></td>
+    <td class="group-sep">
+      <select class="t-select" style="min-width:64px" id="tbl_rutin_${risk.id}"
+        onchange="tblField('${risk.id}','rutin',this.value)">
+        <option value="">—</option>
+        <option value="R"  ${risk.rutin==='R' ?'selected':''}>R</option>
+        <option value="NR" ${risk.rutin==='NR'?'selected':''}>NR</option>
+      </select>
+    </td>
+
+    <td>
+      <select class="t-select" style="min-width:100px" id="tbl_kategori_${risk.id}"
+        onchange="tblKategoriChange('${risk.id}',this.value)">
+        <option value="">—</option>
+        ${kategoriOpts.map(k=>`<option value="${k}" ${risk.kategoriRisiko===k?'selected':''}>${k}</option>`).join('')}
+      </select>
+    </td>
+    <td>
+      <select class="t-select" style="min-width:190px" id="tbl_asumsi_${risk.id}"
+        onchange="tblField('${risk.id}','assumsiBahaya',this.value); refreshTableEvalCells('${risk.id}')">
+        <option value="">—</option>
+        ${buildAsumsiOptions(risk.kategoriRisiko, risk.assumsiBahaya)}
+      </select>
+    </td>
+    <td><textarea class="t-textarea" style="min-width:140px"
+      onchange="tblField('${risk.id}','dampak',this.value)"
+      oninput="autoGrow(this)" placeholder="Dampak…">${esc(risk.dampak)}</textarea></td>
+    <td id="tbl_jmlTerpapar_${risk.id}">${isOH
+      ? `<input class="t-input" type="number" min="0" style="min-width:64px"
+          value="${esc(risk.jmlTerpapar)}"
+          onchange="tblField('${risk.id}','jmlTerpapar',this.value)"/>`
+      : '<span style="color:#D1D5DB">—</span>'}</td>
+
+    <td id="tbl_ibuHamil_${risk.id}" style="text-align:center">${isOH
+      ? `<input class="t-input" type="number" min="0" style="min-width:40px;max-width:48px;text-align:center"
+          value="${esc(risk.ibuHamil)}" onchange="tblField('${risk.id}','ibuHamil',this.value)"/>`
+      : '<span style="color:#D1D5DB">—</span>'}</td>
+    <td id="tbl_ibuMenyusui_${risk.id}" style="text-align:center">${isOH
+      ? `<input class="t-input" type="number" min="0" style="min-width:40px;max-width:48px;text-align:center"
+          value="${esc(risk.ibuMenyusui)}" onchange="tblField('${risk.id}','ibuMenyusui',this.value)"/>`
+      : '<span style="color:#D1D5DB">—</span>'}</td>
+    <td id="tbl_penyakitKhusus_${risk.id}" style="text-align:center">${isOH
+      ? `<input class="t-input" type="number" min="0" style="min-width:40px;max-width:48px;text-align:center"
+          value="${esc(risk.penyakitKhusus)}" onchange="tblField('${risk.id}','penyakitKhusus',this.value)"/>`
+      : '<span style="color:#D1D5DB">—</span>'}</td>
+    <td id="tbl_disabilitas_${risk.id}" class="group-sep" style="text-align:center">${isOH
+      ? `<input class="t-input" type="number" min="0" style="min-width:40px;max-width:48px;text-align:center"
+          value="${esc(risk.disabilitas)}" onchange="tblField('${risk.id}','disabilitas',this.value)"/>`
+      : '<span style="color:#D1D5DB">—</span>'}</td>
+
+    <td>
+      <select class="t-select" style="min-width:64px" id="tbl_rop_${risk.id}"
+        onchange="tblEvalChange('${risk.id}','ropBefore',this.value)">
+        <option value="">—</option>
+        ${ropOpts.map(v=>`<option value="${v}" ${risk.ropBefore==v?'selected':''}>${v}</option>`).join('')}
+      </select>
+    </td>
+    <td>
+      <select class="t-select" style="min-width:64px" id="tbl_rs_${risk.id}"
+        onchange="tblEvalChange('${risk.id}','rsBefore',this.value)">
+        <option value="">—</option>
+        ${rsOpts.map(v=>`<option value="${v}" ${risk.rsBefore==v?'selected':''}>${v}</option>`).join('')}
+      </select>
+    </td>
+    <td id="tbl_scoreBefore_${risk.id}">
+      ${scoreBefore ? `<div class="t-score ${levelBefore.toLowerCase()}">${scoreBefore}</div>` : '<span style="color:#D1D5DB">—</span>'}
+    </td>
+    <td class="group-sep" id="tbl_levelBefore_${risk.id}">
+      ${levelBefore ? `<div class="t-score ${levelBefore.toLowerCase()}">${levelEmoji(levelBefore)} ${levelBefore}</div>` : '<span style="color:#D1D5DB">—</span>'}
+    </td>
+
+    <td class="group-sep" style="min-width:220px">
+      <div class="ctrl-chips" id="tbl_chips_${risk.id}">${buildCtrlChips(risk.riskControls || [])}</div>
+      <button class="edit-ctrl-btn" onclick="openCtrlModal('${risk.id}')">✏ Edit Pengendalian</button>
+    </td>
+
+    <td id="tbl_ropAfter_${risk.id}">
+      ${after ? `<div class="t-score neutral">${after.ropAfter}</div>` : '<span style="color:#D1D5DB">—</span>'}
+    </td>
+    <td id="tbl_rsAfter_${risk.id}">
+      ${after ? `<div class="t-score neutral">${after.rsAfter}</div>` : '<span style="color:#D1D5DB">—</span>'}
+    </td>
+    <td id="tbl_scoreAfter_${risk.id}">
+      ${after ? `<div class="t-score ${after.levelAfter.toLowerCase()}">${after.scoreAfter}</div>` : '<span style="color:#D1D5DB">—</span>'}
+    </td>
+    <td id="tbl_levelAfter_${risk.id}">
+      ${after ? `<div class="t-score ${after.levelAfter.toLowerCase()}">${levelEmoji(after.levelAfter)} ${after.levelAfter}</div>` : '<span style="color:#D1D5DB">—</span>'}
+    </td>
+  `;
+  return tr;
+}
+
+// ── TABLE FIELD HANDLERS ──────────────────────────────────────
+function tblField(riskId, field, value) {
+  const risk = getRisk(riskId);
+  if (!risk) return;
+  risk[field] = value;
+  triggerAutoSave();
+}
+
+function tblKategoriChange(riskId, value) {
+  const risk = getRisk(riskId);
+  if (!risk) return;
+  risk.kategoriRisiko = value;
+  risk.assumsiBahaya  = '';
+
+  const sel = document.getElementById('tbl_asumsi_' + riskId);
+  if (sel) sel.innerHTML = '<option value="">—</option>' + buildAsumsiOptions(value, '');
+
+  refreshConditionalCells(riskId);
+  refreshTableEvalCells(riskId);
+  triggerAutoSave();
+}
+
+function tblEvalChange(riskId, field, value) {
+  const risk = getRisk(riskId);
+  if (!risk) return;
+  risk[field] = value;
+
+  const rop = Number(risk.ropBefore);
+  const rs  = Number(risk.rsBefore);
+
+  if (rop && rs) {
+    const scoreBefore = rop * rs;
+    const levelBefore = computeLevel(scoreBefore);
+    const after = computeEvalAfter(rop, rs, risk.riskControls || []);
+
+    const setEl = (id, html) => { const el = document.getElementById(id); if (el) el.innerHTML = html; };
+    setEl('tbl_scoreBefore_' + riskId, `<div class="t-score ${levelBefore.toLowerCase()}">${scoreBefore}</div>`);
+    setEl('tbl_levelBefore_' + riskId, `<div class="t-score ${levelBefore.toLowerCase()}">${levelEmoji(levelBefore)} ${levelBefore}</div>`);
+    setEl('tbl_ropAfter_'    + riskId, `<div class="t-score neutral">${after.ropAfter}</div>`);
+    setEl('tbl_rsAfter_'     + riskId, `<div class="t-score neutral">${after.rsAfter}</div>`);
+    setEl('tbl_scoreAfter_'  + riskId, `<div class="t-score ${after.levelAfter.toLowerCase()}">${after.scoreAfter}</div>`);
+    setEl('tbl_levelAfter_'  + riskId, `<div class="t-score ${after.levelAfter.toLowerCase()}">${levelEmoji(after.levelAfter)} ${after.levelAfter}</div>`);
+  }
+  triggerAutoSave();
+}
+
+// ── PATCH CONDITIONAL CELLS ───────────────────────────────────
+function refreshConditionalCells(riskId) {
+  const risk = getRisk(riskId);
+  const isOH = risk.kategoriRisiko === 'OH' || risk.kategoriRisiko === 'OS Proses & Human';
+  const fields = ['jmlTerpapar','ibuHamil','ibuMenyusui','penyakitKhusus','disabilitas'];
+  fields.forEach(function(field) {
+    const td = document.getElementById('tbl_' + field + '_' + riskId);
+    if (!td) return;
+    if (isOH) {
+      td.innerHTML = `<input class="t-input" type="number" min="0"
+        style="min-width:40px;max-width:64px;text-align:center"
+        value="${esc(risk[field] || '')}"
+        onchange="tblField('${riskId}','${field}',this.value)"/>`;
+    } else {
+      td.innerHTML = '<span style="color:#D1D5DB">—</span>';
+      risk[field] = '';
+    }
+  });
+}
+
+// ── CHIPS & EVAL REFRESH ──────────────────────────────────────
+function buildCtrlChips(controls) {
+  if (!controls.length) return '<span style="color:#9CA3AF;font-size:11px">Belum ada</span>';
+  return controls.map(c => {
+    const kat = (c.kategori || '').toLowerCase();
+    let cls = 'ctrl-chip-other', label = '';
+    if (kat === 'engineering control')         { cls = 'ctrl-chip-eng';   label = 'ENG'; }
+    else if (kat === 'administration control') { cls = 'ctrl-chip-admin'; label = 'ADM'; }
+    else if (kat === 'ppe / apd')              { cls = 'ctrl-chip-ppe';   label = 'PPE'; }
+    const act = c.controlActivity
+      ? (c.controlActivity.length > 30 ? c.controlActivity.slice(0, 30) + '…' : c.controlActivity)
+      : '—';
+    const labelHtml = label ? `<span class="chip-label">${label}</span>` : '';
+    return `<div class="ctrl-chip ${cls}">${labelHtml}<span class="chip-act">${esc(act)}</span></div>`;
+  }).join('');
+}
+
+function refreshTableEvalCells(riskId) {
+  const risk = getRisk(riskId);
+  if (!risk) return;
+
+  const rop = Number(risk.ropBefore);
+  const rs  = Number(risk.rsBefore);
+  const setEl = (id, html) => { const el = document.getElementById(id); if (el) el.innerHTML = html; };
+
+  const chips = document.getElementById('tbl_chips_' + riskId);
+  if (chips) chips.innerHTML = buildCtrlChips(risk.riskControls || []);
+
+  if (rop && rs) {
+    const after = computeEvalAfter(rop, rs, risk.riskControls || []);
+    setEl('tbl_ropAfter_'   + riskId, `<div class="t-score neutral">${after.ropAfter}</div>`);
+    setEl('tbl_rsAfter_'    + riskId, `<div class="t-score neutral">${after.rsAfter}</div>`);
+    setEl('tbl_scoreAfter_' + riskId, `<div class="t-score ${after.levelAfter.toLowerCase()}">${after.scoreAfter}</div>`);
+    setEl('tbl_levelAfter_' + riskId, `<div class="t-score ${after.levelAfter.toLowerCase()}">${levelEmoji(after.levelAfter)} ${after.levelAfter}</div>`);
+  }
+
+  const status = computeStatus(risk);
+  const inactive = status === 'Eliminasi' || status === 'Transference' || status === 'Substitute';
+  const statusEl = document.getElementById('tbl_status_' + riskId);
+  if (statusEl) {
+    statusEl.textContent = status;
+    statusEl.className   = status ? 'status-badge status-' + status.toLowerCase() : '';
+    const tr = document.getElementById('trow_' + riskId);
+    if (tr) {
+      if (inactive) tr.classList.add('row-inactive');
+      else          tr.classList.remove('row-inactive');
+    }
+  }
+}
+
+// ── CONTROLS MODAL ────────────────────────────────────────────
+let modalRiskId = null;
+
+function openCtrlModal(riskId) {
+  modalRiskId = riskId;
+  const risk  = getRisk(riskId);
+  const idx   = risks.findIndex(r => r.id === riskId);
+  document.getElementById('ctrlModalTitle').textContent = `Pengendalian Risiko — Baris #${idx + 1}`;
+
+  const body = document.getElementById('ctrlModalBody');
+  body.innerHTML = '';
+
+  const wrapper = document.createElement('div');
+  wrapper.innerHTML = `
+    <div class="controls-list" id="modalCtrlList_${riskId}"></div>
+    <button class="add-control-btn" id="modalAddCtrl_${riskId}"
+      onclick="modalAddControl('${riskId}')" style="margin-top:10px">
+      + Tambah Pengendalian
+    </button>
+  `;
+  body.appendChild(wrapper);
+
+  const saved = [...(risk.riskControls || [])];
+  risk.riskControls = [];
+  saved.forEach(c => modalAddControl(riskId, c));
+
+  document.getElementById('ctrlModal').classList.add('open');
+
+  setTimeout(function() {
+    document.querySelectorAll('#ctrlModalBody .cell-selected').forEach(e => e.classList.remove('cell-selected'));
+    const focusable = getModalFocusable();
+    if (!focusable.length) {
+      const addBtn = document.getElementById('modalAddCtrl_' + riskId);
+      if (addBtn) { addBtn.classList.add('cell-selected'); addBtn.focus(); }
+      return;
+    }
+    const first = focusable[0];
+    first.classList.add('cell-selected');
+    if (first.tagName === 'SELECT') { first.focus(); openSelectInline(first); }
+    else { first.focus(); first.select && first.select(); }
+  }, 100);
+}
+
+function modalAddControl(riskId, existingCtrl) {
+  const risk   = getRisk(riskId);
+  const ctrlId = existingCtrl ? existingCtrl.id : ('ctrl_modal_' + Date.now());
+  const ctrl   = existingCtrl || { id: ctrlId, strategi: '', kategori: '', controlActivity: '', pic: '', dueDate: '', status: '' };
+  if (!ctrl.id) ctrl.id = ctrlId;
+  risk.riskControls.push(ctrl);
+
+  const list = document.getElementById('modalCtrlList_' + riskId);
+  if (!list) return;
+  const num = risk.riskControls.length;
+  const el  = document.createElement('div');
+  el.id     = 'ctrlCard_' + ctrl.id;
+  el.className = 'control-card';
+  el.innerHTML = buildControlCardHTML(ctrl, num, riskId);
+  list.appendChild(el);
+
+  updateModalAddBtn(riskId);
+
+  setTimeout(function() {
+    document.querySelectorAll('#ctrlModalBody .cell-selected').forEach(e => e.classList.remove('cell-selected'));
+    const focusable = getModalFocusable();
+    const card = document.getElementById('ctrlCard_' + ctrl.id);
+    if (!card) return;
+    const cardFields = focusable.filter(f => card.contains(f));
+    if (!cardFields.length) return;
+    const first = cardFields[0];
+    first.classList.add('cell-selected');
+    if (first.tagName === 'SELECT') { first.focus(); openSelectInline(first); }
+    else { first.focus(); first.select && first.select(); }
+  }, 50);
+}
+
+function buildControlCardHTML(ctrl, num, riskId) {
+  const stratOpts  = ['Avoidance','Mitigate','Acceptance','Transference'];
+  const needsPIC   = !noExtraFields(ctrl.strategi, ctrl.kategori);
+  return `
+  <div class="control-card-head">
+    <span class="control-num">Pengendalian #${num}</span>
+    <button class="remove-ctrl-btn" onclick="removeControl('${riskId}','${ctrl.id}')">✕</button>
+  </div>
+  <div class="control-card-body">
+    <div class="control-grid">
+      <div class="field">
+        <label>Strategi <span class="req">*</span></label>
+        <select id="strat_${ctrl.id}" onchange="onStrategChange('${riskId}','${ctrl.id}')">
+          <option value="">-- Pilih --</option>
+          ${stratOpts.map(s=>`<option value="${s}" ${ctrl.strategi===s?'selected':''}>${s}</option>`).join('')}
+        </select>
+      </div>
+      <div class="field" id="kategoriField_${ctrl.id}" ${ctrl.strategi==='Transference'?'style="display:none"':''}>
+        <label>Kategori <span class="req">*</span></label>
+        <select id="kat_${ctrl.id}" onchange="onKategoriCtrlChange('${riskId}','${ctrl.id}')">
+          <option value="">-- Pilih --</option>
+          ${buildKategoriCtrlOptions(ctrl.strategi, ctrl.kategori)}
+        </select>
+      </div>
+      <div class="field span-2">
+        <label>Control Activity <span class="req">*</span></label>
+        <textarea id="ctrlAct_${ctrl.id}" rows="2"
+          placeholder="Deskripsikan tindakan pengendalian..."
+          oninput="onCtrlFieldChange('${riskId}','${ctrl.id}')">${ctrl.controlActivity||''}</textarea>
+      </div>
+      <div class="field" id="picField_${ctrl.id}" ${needsPIC?'':'style="display:none"'}>
+        <label>PIC</label>
+        <input type="text" id="pic_${ctrl.id}" value="${ctrl.pic||''}"
+          placeholder="Nama PIC" oninput="onCtrlFieldChange('${riskId}','${ctrl.id}')"/>
+      </div>
+      <div class="field" id="dueDateField_${ctrl.id}" ${needsPIC?'':'style="display:none"'}>
+        <label>Due Date</label>
+        <input type="date" id="dueDate_${ctrl.id}" value="${ctrl.dueDate||''}"
+          onchange="onCtrlFieldChange('${riskId}','${ctrl.id}')"/>
+      </div>
+      <div class="field" id="statusCtrlField_${ctrl.id}" ${needsPIC?'':'style="display:none"'}>
+        <label>Status</label>
+        <select id="statusCtrl_${ctrl.id}" onchange="onCtrlFieldChange('${riskId}','${ctrl.id}')">
+          <option value="">-- Pilih --</option>
+          <option value="On Progress" ${ctrl.status==='On Progress'?'selected':''}>On Progress</option>
+          <option value="Done" ${ctrl.status==='Done'?'selected':''}>Done</option>
+        </select>
+      </div>
+    </div>
+  </div>`;
+}
+
+function noExtraFields(strategi, kategori) {
+  if (strategi === 'Transference') return true;
+  if (strategi === 'Avoidance' && kategori === 'Eliminasi') return true;
+  if (strategi === 'Mitigate'  && kategori === 'Subtitusi') return true;
+  return false;
+}
+
+function buildKategoriCtrlOptions(strategi, selected) {
+  const opts = KATEGORI_BY_STRATEGI[strategi] || [];
+  return opts.map(k => `<option value="${k}" ${selected===k?'selected':''}>${k}</option>`).join('');
+}
+
+function buildAsumsiOptions(kategori, selected) {
+  const list = ASUMSI_BY_KATEGORI[kategori] || [];
+  return list.map(a => `<option value="${a}" ${selected===a?'selected':''}>${a}</option>`).join('');
+}
+
+function onStrategChange(riskId, ctrlId) {
+  const risk  = getRisk(riskId);
+  const ctrl  = risk.riskControls.find(c => c.id === ctrlId);
+  const strat = document.getElementById('strat_' + ctrlId).value;
+  ctrl.strategi = strat;
+  ctrl.kategori = '';
+
+  const katField = document.getElementById('kategoriField_' + ctrlId);
+  const katSel   = document.getElementById('kat_' + ctrlId);
+  if (strat === 'Transference') {
+    katField.style.display = 'none';
+  } else {
+    katField.style.display = '';
+    katSel.innerHTML = '<option value="">-- Pilih --</option>' + buildKategoriCtrlOptions(strat, '');
+  }
+
+  toggleControlExtraFields(ctrlId, strat, '');
+  refreshTableEvalCells(riskId);
+  triggerAutoSave();
+}
+
+function onKategoriCtrlChange(riskId, ctrlId) {
+  const risk = getRisk(riskId);
+  const ctrl = risk.riskControls.find(c => c.id === ctrlId);
+  ctrl.kategori = document.getElementById('kat_' + ctrlId).value;
+
+  if (!canAddKategori(riskId, ctrlId, ctrl.strategi, ctrl.kategori)) {
+    document.getElementById('kat_' + ctrlId).value = '';
+    ctrl.kategori = '';
+    showToast('Administration Control atau PPE/APD hanya bisa dipilih 1 kali', 'error');
+    return;
+  }
+
+  toggleControlExtraFields(ctrlId, ctrl.strategi, ctrl.kategori);
+  refreshTableEvalCells(riskId);
+  triggerAutoSave();
+}
+
+function canAddKategori(riskId, currentCtrlId, strategi, kategori) {
+  const risk = getRisk(riskId);
+  const limited = ['Administration Control', 'PPE / APD'];
+  if (!limited.includes(kategori)) return true;
+  return !risk.riskControls.find(c => c.id !== currentCtrlId && c.kategori === kategori);
+}
+
+function toggleControlExtraFields(ctrlId, strategi, kategori) {
+  const hide = noExtraFields(strategi, kategori);
+  ['picField_','dueDateField_','statusCtrlField_'].forEach(function(prefix) {
+    const el = document.getElementById(prefix + ctrlId);
+    if (el) el.style.display = hide ? 'none' : '';
+  });
+}
+
+function onCtrlFieldChange(riskId, ctrlId) {
+  const risk = getRisk(riskId);
+  const ctrl = risk.riskControls.find(c => c.id === ctrlId);
+  if (!ctrl) return;
+  ctrl.controlActivity = (document.getElementById('ctrlAct_'     + ctrlId)||{}).value || '';
+  ctrl.pic             = (document.getElementById('pic_'         + ctrlId)||{}).value || '';
+  ctrl.dueDate         = (document.getElementById('dueDate_'     + ctrlId)||{}).value || '';
+  ctrl.status          = (document.getElementById('statusCtrl_'  + ctrlId)||{}).value || '';
+  refreshTableEvalCells(riskId);
+  triggerAutoSave();
+}
+
+function removeControl(riskId, ctrlId) {
+  const risk = getRisk(riskId);
+  risk.riskControls = risk.riskControls.filter(c => c.id !== ctrlId);
+  const el = document.getElementById('ctrlCard_' + ctrlId);
+  if (el) el.remove();
+  renumberControls(riskId);
+  refreshTableEvalCells(riskId);
+  updateModalAddBtn(riskId);
+  triggerAutoSave();
+}
+
+function renumberControls(riskId) {
+  const risk = getRisk(riskId);
+  risk.riskControls.forEach(function(c, i) {
+    const num = document.querySelector('#ctrlCard_' + c.id + ' .control-num');
+    if (num) num.textContent = 'Pengendalian #' + (i + 1);
+  });
+}
+
+function updateModalAddBtn(riskId) {
+  const risk = getRisk(riskId);
+  const rop  = Number(risk.ropBefore);
+  const rs   = Number(risk.rsBefore);
+  const btn  = document.getElementById('modalAddCtrl_' + riskId);
+  if (!btn || !rop || !rs) return;
+  const after = computeEvalAfter(rop, rs, risk.riskControls || []);
+  btn.disabled = computeLevel(after.scoreAfter) === 'Low';
+}
+
+function closeCtrlModal() {
+  if (modalRiskId) {
+    refreshTableEvalCells(modalRiskId);
+    triggerAutoSave();
+  }
+  if (currentOpenSelect) closeSelectInline(currentOpenSelect);
+  document.querySelectorAll('#ctrlModalBody .cell-selected').forEach(el => el.classList.remove('cell-selected'));
+  document.getElementById('ctrlModal').classList.remove('open');
+  modalRiskId = null;
+}
+
+document.getElementById('ctrlModal').addEventListener('click', function(e) {
+  if (e.target === this) closeCtrlModal();
+});
+
+// ── UTILITIES ─────────────────────────────────────────────────
+function getRisk(riskId) { return risks.find(r => r.id === riskId); }
+
+function formatDate(d) {
+  return d.toLocaleDateString('id-ID', { day:'2-digit', month:'long', year:'numeric' });
+}
+function formatTime(d) {
+  return d.toLocaleTimeString('id-ID', { hour:'2-digit', minute:'2-digit' });
+}
+
+function showToast(msg, type) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className   = 'toast show ' + (type || '');
+  setTimeout(() => { t.className = 'toast'; }, 3200);
+}
+
+function esc(str) {
+  if (str == null) return '';
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function autoGrow(el) {
+  el.style.height = '30px';
+  el.style.height = (el.scrollHeight > 30 ? el.scrollHeight : 30) + 'px';
+}
+
+function autoGrowAll() {
+  document.querySelectorAll('#raTableBody .t-textarea').forEach(autoGrow);
+}
+
+// ── SPREADSHEET NAVIGATION ────────────────────────────────────
+let selectedCell      = null;
+let editMode          = false;
+let currentOpenSelect = null;
+
+function getEditableEl(td, includeButtons) {
+  if (!td) return null;
+  const selector = includeButtons
+    ? 'input:not([disabled]), select:not([disabled]), textarea:not([disabled]), button.edit-ctrl-btn, button.del-row-btn'
+    : 'input:not([disabled]), select:not([disabled]), textarea:not([disabled])';
+  return td.querySelector(selector);
+}
+
+function getCellPos(td) {
+  if (!td) return null;
+  const tr   = td.parentElement;
+  if (!tr) return null;
+  const rows = Array.from(document.querySelectorAll('#raTableBody tr'));
+  const row  = rows.indexOf(tr);
+  const col  = Array.from(tr.querySelectorAll('td')).indexOf(td);
+  return { row, col };
+}
+
+function findNextCell(row, col, dRow, dCol) {
+  const rows = Array.from(document.querySelectorAll('#raTableBody tr'));
+  let r = row + dRow;
+  let c = col + dCol;
+  let safety = 0;
+  while (safety++ < 50) {
+    if (r < 0 || r >= rows.length) return null;
+    const tds = Array.from(rows[r].querySelectorAll('td'));
+    if (c < 0 || c >= tds.length) return null;
+    const td = tds[c];
+    if (td && getEditableEl(td, true)) return td;
+    c += dCol;
+    r += dRow;
+  }
+  return null;
+}
+
+function selectCell(td, enterEdit, clearContent) {
+  if (!td) return;
+  if (selectedCell && selectedCell !== td) deselectCell(selectedCell);
+  selectedCell = td;
+  editMode     = false;
+  td.setAttribute('tabindex', '0');
+  td.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+  const el = getEditableEl(td, true);
+  if (el) el.classList.add('cell-selected');
+  if (enterEdit) {
+    startEdit(td, clearContent);
+  } else {
+    if (el) {
+      el.focus();
+      if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') el.select && el.select();
+    }
+  }
+}
+
+function deselectCell(td) {
+  if (!td) return;
+  td.querySelectorAll('.cell-selected').forEach(function(el) {
+    el.classList.remove('cell-selected');
+    el.blur();
+  });
+  const el = getEditableEl(td);
+  closeSelectInline(el);
+}
+
+function startEdit(td, clearContent) {
+  editMode = true;
+  const el = getEditableEl(td, true);
+  if (!el) return;
+  el.classList.add('cell-selected');
+  if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
+    el.focus();
+    if (clearContent) {
+      el.value = '';
+      el.dispatchEvent(new Event('input', { bubbles: true }));
+    } else {
+      const len = el.value.length;
+      try { el.setSelectionRange(len, len); } catch(e) {}
+    }
+  } else if (el.tagName === 'SELECT') {
+    el.focus();
+    if (currentOpenSelect !== el) openSelectInline(el);
+  } else if (el.tagName === 'BUTTON') {
+    el.focus();
+  }
+}
+
+function confirmAndMove(dRow, dCol) {
+  if (!selectedCell) return;
+  const el = getEditableEl(selectedCell, true);
+  if (el) el.dispatchEvent(new Event('change', { bubbles: true }));
+  closeSelectInline(el);
+  editMode = false;
+
+  const pos = getCellPos(selectedCell);
+  if (!pos) return;
+
+  let next = findNextCell(pos.row, pos.col, dRow, dCol);
+  if (next) { selectCell(next, false, false); return; }
+
+  if (dCol === 1 && dRow === 0) {
+    const rows = Array.from(document.querySelectorAll('#raTableBody tr'));
+    const nextRowIdx = pos.row + 1;
+    if (nextRowIdx < rows.length) {
+      const tds = Array.from(rows[nextRowIdx].querySelectorAll('td'));
+      for (let i = 0; i < tds.length; i++) {
+        if (getEditableEl(tds[i], true)) { selectCell(tds[i], false, false); return; }
+      }
+    }
+  }
+}
+
+// ── CUSTOM DROPDOWN ───────────────────────────────────────────
+function openSelectInline(sel) {
+  if (!sel || sel.tagName !== 'SELECT') return;
+  if (currentOpenSelect && currentOpenSelect !== sel) closeSelectInline(currentOpenSelect);
+  if (sel.options.length <= 1) return;
+
+  const existing = document.getElementById('customDropdown_' + sel.id);
+  if (existing) return;
+
+  const dropdown = document.createElement('div');
+  dropdown.id = 'customDropdown_' + sel.id;
+  dropdown.style.cssText = `
+    position:fixed; left:0px; top:0px;
+    min-width:160px;
+    background:white; border:1px solid #D1D5DB; border-radius:4px;
+    box-shadow:0 4px 16px rgba(0,0,0,.15); z-index:9999;
+    max-height:240px; overflow-y:auto; font-family:var(--font); font-size:12px;
+  `;
+
+  function repositionDropdown() {
+    const rect       = sel.getBoundingClientRect();
+    const vpHeight   = window.innerHeight;
+    const spaceBelow = vpHeight - rect.bottom;
+    const dropH      = Math.min(240, sel.options.length * 34 + 50);
+
+    const modalBox = sel.closest('.modal-box');
+    if (modalBox && spaceBelow < dropH) {
+      modalBox.scrollBy({ top: dropH - spaceBelow + 16, behavior: 'smooth' });
+    }
+
+    const openAbove = spaceBelow < dropH && rect.top > dropH;
+    dropdown.style.left     = rect.left + 'px';
+    dropdown.style.top      = openAbove
+      ? (rect.top - dropH - 2) + 'px'
+      : (rect.bottom + 2) + 'px';
+    dropdown.style.minWidth = Math.max(rect.width, 160) + 'px';
+  }
+
+  function onScroll() { repositionDropdown(); }
+  window.addEventListener('scroll', onScroll, true);
+  dropdown._removeScroll = function() { window.removeEventListener('scroll', onScroll, true); };
+
+  let hoveredIdx = sel.selectedIndex >= 0 ? sel.selectedIndex : 0;
+  let listWrap;
+
+  if (sel.options.length >= 6) {
+    const sw = document.createElement('div');
+    sw.style.cssText = 'padding:6px 8px;border-bottom:1px solid #E5E7EB;position:sticky;top:0;background:white;z-index:1;';
+    const si = document.createElement('input');
+    si.type = 'text'; si.placeholder = '🔍 Cari…';
+    si.style.cssText = 'width:100%;border:1px solid #D1D5DB;border-radius:4px;padding:5px 8px;font-size:12px;font-family:var(--font);outline:none;box-sizing:border-box;';
+    si.addEventListener('focus',  function() { si.style.borderColor = 'var(--red)'; });
+    si.addEventListener('blur',   function() { si.style.borderColor = '#D1D5DB'; });
+    si.addEventListener('input',  function() { renderItems(si.value.toLowerCase()); });
+    si.addEventListener('keydown', function(e) {
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        const items = Array.from(listWrap.children);
+        const pos   = items.findIndex(c => parseInt(c.dataset.idx) === hoveredIdx);
+        const next  = items[pos + 1] || items[0];
+        if (next) { hoveredIdx = parseInt(next.dataset.idx); highlight(hoveredIdx); }
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        const items = Array.from(listWrap.children);
+        const pos   = items.findIndex(c => parseInt(c.dataset.idx) === hoveredIdx);
+        const prev  = items[pos - 1];
+        if (prev) { hoveredIdx = parseInt(prev.dataset.idx); highlight(hoveredIdx); }
+      } else if (e.key === 'Enter') {
+        e.preventDefault();
+        if (hoveredIdx >= 0 && sel.options[hoveredIdx]) confirmSel(hoveredIdx);
+        else {
+          const first = listWrap.children[0];
+          if (first) confirmSel(parseInt(first.dataset.idx));
+        }
+      } else if (e.key === 'Escape') {
+        e.preventDefault();
+        closeSelectInline(sel);
+        if (selectedCell) { editMode = false; selectedCell.focus(); }
+      }
+    });
+    sw.appendChild(si);
+    dropdown.appendChild(sw);
+    setTimeout(function() {
+      if (document.getElementById('customDropdown_' + sel.id)) si.focus();
+    }, 30);
+  }
+
+  listWrap = document.createElement('div');
+  dropdown.appendChild(listWrap);
+
+  function confirmSel(idx) {
+    sel.selectedIndex = idx;
+    sel.value = sel.options[idx] ? sel.options[idx].value : '';
+    closeSelectInline(sel);
+    sel.dispatchEvent(new Event('change', { bubbles: true }));
+
+    const isModal = !!sel.closest('#ctrlModalBody');
+    if (isModal) {
+      const focusable = getModalFocusable();
+      const idx2      = focusable.indexOf(sel);
+      sel.classList.remove('cell-selected');
+      const next = focusable[idx2 + 1];
+      if (next) {
+        next.classList.add('cell-selected');
+        if (next.tagName === 'SELECT') { next.focus(); openSelectInline(next); }
+        else { next.focus(); next.select && next.select(); }
+      }
+    } else {
+      if (selectedCell) {
+        editMode = false;
+        const pos  = getCellPos(selectedCell);
+        const next = pos ? findNextCell(pos.row, pos.col, 0, 1) : null;
+        if (next) selectCell(next, false, false);
+      }
+    }
+  }
+
+  function renderItems(query) {
+    listWrap.innerHTML = '';
+    let firstVisibleIdx = -1;
+    Array.from(sel.options).forEach(function(opt, i) {
+      if (query && opt.value !== '' && !opt.text.toLowerCase().includes(query)) return;
+      if (firstVisibleIdx === -1 && opt.value !== '') firstVisibleIdx = i;
+      const div = document.createElement('div');
+      div.textContent   = opt.text;
+      div.dataset.idx   = i;
+      div.style.cssText = `
+        padding:7px 12px; cursor:pointer; font-size:12px;
+        color:${opt.value === '' ? '#9CA3AF' : '#111214'};
+        background:${i === sel.selectedIndex ? '#DBEAFE' : 'white'};
+      `;
+      div.addEventListener('mouseenter', function() { clearHL(); div.style.background = '#EFF6FF'; hoveredIdx = i; });
+      div.addEventListener('mouseleave', function() { div.style.background = i === sel.selectedIndex ? '#DBEAFE' : 'white'; });
+      div.addEventListener('mousedown',  function(e) { e.preventDefault(); confirmSel(i); });
+      listWrap.appendChild(div);
+    });
+    if (query && firstVisibleIdx !== -1) hoveredIdx = firstVisibleIdx;
+    highlight(hoveredIdx);
+  }
+
+  function clearHL() {
+    Array.from(listWrap.children).forEach(function(c) {
+      c.style.background = parseInt(c.dataset.idx) === sel.selectedIndex ? '#DBEAFE' : 'white';
+    });
+  }
+
+  function highlight(idx) {
+    hoveredIdx = idx;
+    Array.from(listWrap.children).forEach(function(c) {
+      const i = parseInt(c.dataset.idx);
+      c.style.background = i === hoveredIdx ? '#EFF6FF' : (i === sel.selectedIndex ? '#DBEAFE' : 'white');
+    });
+    const m = Array.from(listWrap.children).find(c => parseInt(c.dataset.idx) === idx);
+    if (m) m.scrollIntoView({ block: 'nearest' });
+  }
+
+  sel._ddKey = function(e) {
+    const items = Array.from(listWrap.children);
+    const pos   = items.findIndex(c => parseInt(c.dataset.idx) === hoveredIdx);
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      const n = items[pos + 1]; if (n) highlight(parseInt(n.dataset.idx));
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      const p = items[pos - 1]; if (p) highlight(parseInt(p.dataset.idx));
+    } else if (e.key === 'Enter') {
+      e.preventDefault(); e.stopPropagation(); confirmSel(hoveredIdx);
+    } else if (e.key === 'Escape') {
+      e.preventDefault();
+      closeSelectInline(sel);
+      if (selectedCell) { editMode = false; selectedCell.style.outline = '2px solid var(--red)'; selectedCell.focus(); }
+    } else if (e.key === 'Tab') {
+      e.preventDefault(); confirmSel(hoveredIdx);
+    } else if (e.key.length === 1 && !e.ctrlKey && !e.metaKey) {
+      const dd = document.getElementById('customDropdown_' + sel.id);
+      if (dd) {
+        const searchInput = dd.querySelector('input[type="text"]');
+        if (searchInput) {
+          searchInput.value = e.key;
+          searchInput.dispatchEvent(new Event('input', { bubbles: true }));
+          searchInput.focus();
+          e.preventDefault();
+        }
+      }
+    }
+  };
+  sel._ddBlur = function() {
+    setTimeout(function() {
+      const dd = document.getElementById('customDropdown_' + sel.id);
+      if (!dd) return;
+      const active = document.activeElement;
+      if (dd.contains(active)) return;
+      if (sel.contains(active)) return;
+      if (!dd.matches(':hover') && active !== sel) closeSelectInline(sel);
+    }, 300);
+  };
+  sel.addEventListener('keydown', sel._ddKey);
+  sel.addEventListener('blur',    sel._ddBlur);
+
+  renderItems('');
+  document.body.appendChild(dropdown);
+  repositionDropdown();
+  currentOpenSelect = sel;
+}
+
+function closeSelectInline(sel) {
+  if (!sel) return;
+  const dd = document.getElementById('customDropdown_' + (sel.id || ''));
+  if (dd) {
+    if (dd._removeScroll) dd._removeScroll();
+    if (dd.parentNode) dd.parentNode.removeChild(dd);
+  }
+  if (sel._ddKey)  sel.removeEventListener('keydown', sel._ddKey);
+  if (sel._ddBlur) sel.removeEventListener('blur',    sel._ddBlur);
+  if (currentOpenSelect === sel) currentOpenSelect = null;
+}
+
+// ── CLICK HANDLER ─────────────────────────────────────────────
+document.addEventListener('click', function(e) {
+  if (e.target.closest('#ctrlModal')) return;
+
+  const addBtn = document.querySelector('.add-row-btn');
+  if (addBtn) addBtn.classList.remove('cell-selected');
+
+  const td = e.target.closest('#raTableBody td');
+  if (!td) {
+    if (selectedCell && !e.target.closest('.submit-bar') && !e.target.closest('.top-bar')) {
+      deselectCell(selectedCell);
+      selectedCell = null;
+      editMode = false;
+    }
+    return;
+  }
+  const el = getEditableEl(td);
+  if (!el) return;
+
+  if (selectedCell === td) {
+    if (!editMode) startEdit(td, false);
+  } else {
+    if (selectedCell) deselectCell(selectedCell);
+    selectCell(td, false, false);
+  }
+});
+
+document.addEventListener('mousedown', function(e) {
+  const sel = e.target.closest('#raTableBody select, #ctrlModal select');
+  if (!sel) return;
+  e.preventDefault();
+  sel.focus();
+
+  if (currentOpenSelect === sel) { closeSelectInline(sel); return; }
+
+  const td = sel.closest('td');
+  if (td && td.closest('#raTableBody')) {
+    if (selectedCell && selectedCell !== td) deselectCell(selectedCell);
+    selectedCell = td;
+    editMode     = true;
+    td.setAttribute('tabindex', '0');
+    td.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+    sel.classList.add('cell-selected');
+  }
+
+  openSelectInline(sel);
+});
+
+// ── KEYBOARD HANDLER ──────────────────────────────────────────
+document.addEventListener('keydown', function(e) {
+  if (document.getElementById('ctrlModal').classList.contains('open')) {
+    const active = document.activeElement;
+    if (!active) return;
+    const tag = active.tagName.toLowerCase();
+
+    if (active.type === 'text' && active.closest('[id^="customDropdown_"]')) return;
+
+    const focusable = getModalFocusable();
+    const idx       = focusable.indexOf(active);
+
+    function modalMoveFocus(dir) {
+      const curr = focusable[idx];
+      const next = focusable[idx + dir];
+
+      if (curr) { curr.classList.remove('cell-selected'); curr.blur(); closeSelectInline(curr); }
+
+      if (next) {
+        next.classList.add('cell-selected');
+        if (next.tagName === 'INPUT' || next.tagName === 'TEXTAREA') { next.focus(); next.select && next.select(); }
+        else if (next.tagName === 'SELECT') { next.focus(); }
+        else if (next.tagName === 'BUTTON') { next.focus(); }
+        const modalBox = document.querySelector('.modal-box');
+        if (modalBox) {
+          const boxRect  = modalBox.getBoundingClientRect();
+          const elRect   = next.getBoundingClientRect();
+          const elTop    = elRect.top - boxRect.top + modalBox.scrollTop;
+          const elBottom = elTop + elRect.height;
+          if (elBottom > modalBox.scrollTop + modalBox.clientHeight - 20) {
+            modalBox.scrollTop = elBottom - modalBox.clientHeight + 20;
+          } else if (elTop < modalBox.scrollTop + 60) {
+            modalBox.scrollTop = elTop - 60;
+          }
+        }
+        return;
+      }
+
+      if (dir === 1) {
+        const addBtn = document.querySelector('#ctrlModalBody [id^="modalAddCtrl_"]:not([disabled])');
+        if (addBtn) { addBtn.classList.add('cell-selected'); addBtn.focus(); return; }
+        const selesaiBtn = document.querySelector('.modal-footer .btn-save');
+        if (selesaiBtn) { selesaiBtn.classList.add('cell-selected'); selesaiBtn.focus(); }
+      }
+    }
+
+    if (e.key === 'Enter' || (e.key === ' ' && tag === 'button')) {
+      if (e.key === 'Enter' && tag === 'textarea' && e.shiftKey) return;
+      if (e.key === 'Enter' && tag === 'select') return;
+      if (tag === 'button') {
+        e.preventDefault();
+        active.click();
+        return;
+      }
+      if (tag === 'textarea') { e.preventDefault(); modalMoveFocus(1); return; }
+      e.preventDefault(); modalMoveFocus(1); return;
+    }
+    if (e.key === 'Tab') {
+      e.preventDefault(); modalMoveFocus(e.shiftKey ? -1 : 1); return;
+    }
+    if (e.key === 'ArrowDown') {
+      if (tag === 'select') return;
+      e.preventDefault(); modalMoveFocus(1); return;
+    }
+    if (e.key === 'ArrowUp') {
+      if (tag === 'select') return;
+      e.preventDefault(); modalMoveFocus(-1); return;
+    }
+    if (e.key === 'Delete' || e.key === 'Backspace') {
+      if (tag === 'input' || tag === 'textarea') return;
+      e.preventDefault();
+      const curr = focusable[idx];
+      if (curr && (curr.tagName === 'INPUT' || curr.tagName === 'TEXTAREA')) {
+        curr.value = '';
+        curr.dispatchEvent(new Event('input',  { bubbles: true }));
+        curr.dispatchEvent(new Event('change', { bubbles: true }));
+      }
+      return;
+    }
+    if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey && tag === 'select') {
+      if (currentOpenSelect !== active) openSelectInline(active);
+      setTimeout(function() {
+        const dd = document.getElementById('customDropdown_' + active.id);
+        if (dd) {
+          const si = dd.querySelector('input[type="text"]');
+          if (si) { si.value = e.key; si.dispatchEvent(new Event('input', { bubbles: true })); si.focus(); }
+        }
+      }, 40);
+      e.preventDefault(); return;
+    }
+    if (e.key === 'Escape') {
+      if (currentOpenSelect) { closeSelectInline(currentOpenSelect); return; }
+      closeCtrlModal(); return;
+    }
+
+    const activeEl = document.activeElement;
+    const addBtn   = document.querySelector('#ctrlModalBody [id^="modalAddCtrl_"]');
+    const selesaiBtn = document.querySelector('.modal-footer .btn-save');
+
+    if (activeEl === addBtn || activeEl === selesaiBtn) {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        activeEl.classList.remove('cell-selected');
+        activeEl.click();
+        return;
+      }
+      if (e.key === 'ArrowRight' || e.key === 'Tab') {
+        e.preventDefault();
+        if (activeEl === addBtn && selesaiBtn) {
+          addBtn.classList.remove('cell-selected');
+          selesaiBtn.classList.add('cell-selected');
+          selesaiBtn.focus();
+        }
+        return;
+      }
+      if (e.key === 'ArrowLeft' || (e.key === 'Tab' && e.shiftKey)) {
+        e.preventDefault();
+        if (activeEl === selesaiBtn && addBtn && !addBtn.disabled) {
+          selesaiBtn.classList.remove('cell-selected');
+          addBtn.classList.add('cell-selected');
+          addBtn.focus();
+        }
+        return;
+      }
+      if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        activeEl.classList.remove('cell-selected');
+        const focusableUp = getModalFocusable();
+        const last = focusableUp[focusableUp.length - 1];
+        if (last) {
+          last.classList.add('cell-selected');
+          last.focus();
+          last.select && last.select();
+        }
+        return;
+      }
+      return;
+    }
+    return;
+  }
+
+  const active = document.activeElement;
+  const tag    = active ? active.tagName.toLowerCase() : '';
+
+  if (active && active.type === 'text' && active.closest('[id^="customDropdown_"]')) return;
+  if (!selectedCell) return;
+
+  const pos = getCellPos(selectedCell);
+  if (!pos) return;
+
+  if (editMode) {
+    if (e.key === 'Escape') {
+      e.preventDefault();
+      const el = getEditableEl(selectedCell, true);
+      closeSelectInline(el);
+      editMode = false;
+      if (el) { el.classList.remove('cell-selected'); el.blur(); }
+      selectCell(selectedCell, false, false);
+      return;
+    }
+    if (e.key === 'Enter') {
+      if (tag === 'textarea' && e.shiftKey) return;
+      if (tag === 'textarea' || tag === 'input') { e.preventDefault(); confirmAndMove(0, 1); return; }
+      if (tag === 'select') return;
+    }
+    if (e.key === 'Tab') { e.preventDefault(); confirmAndMove(0, e.shiftKey ? -1 : 1); return; }
+    if (tag === 'input' || tag === 'textarea') return;
+    return;
+  }
+
+  if (e.key === ' ') {
+    const el = getEditableEl(selectedCell, true);
+    if (el && el.tagName === 'SELECT') {
+      e.preventDefault();
+      e.stopPropagation();
+      editMode = true;
+      el.classList.add('cell-selected');
+      el.focus();
+      setTimeout(function() { openSelectInline(el); }, 0);
+      return;
+    }
+  }
+  if (e.key === 'ArrowRight') { e.preventDefault(); const n = findNextCell(pos.row, pos.col, 0, 1);  if (n) selectCell(n, false, false); return; }
+  if (e.key === 'ArrowLeft')  { e.preventDefault(); const n = findNextCell(pos.row, pos.col, 0, -1); if (n) selectCell(n, false, false); return; }
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    const n = findNextCell(pos.row, pos.col, 1, 0);
+    if (n) { selectCell(n, false, false); return; }
+    const addBtn = document.querySelector('.add-row-btn');
+    if (addBtn) { deselectCell(selectedCell); selectedCell = null; editMode = false; addBtn.classList.add('cell-selected'); addBtn.focus(); }
+    return;
+  }
+  if (e.key === 'ArrowUp')  { e.preventDefault(); const n = findNextCell(pos.row, pos.col, -1, 0); if (n) selectCell(n, false, false); return; }
+  if (e.key === 'Tab') { e.preventDefault(); const n = findNextCell(pos.row, pos.col, 0, e.shiftKey ? -1 : 1); if (n) selectCell(n, false, false); return; }
+  if (e.key === 'Enter' || e.key === 'F2') {
+    e.preventDefault();
+    const el = getEditableEl(selectedCell, true);
+    if (!el) return;
+    if (el.tagName === 'BUTTON') { el.click(); }
+    else if (el.tagName === 'SELECT') { editMode = true; el.classList.add('cell-selected'); el.focus(); openSelectInline(el); }
+    else { startEdit(selectedCell, false); }
+    return;
+  }
+  if (e.key === 'Delete' || e.key === 'Backspace') {
+    e.preventDefault();
+    const el = getEditableEl(selectedCell, true);
+    if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA')) {
+      el.value = '';
+      el.dispatchEvent(new Event('input',  { bubbles: true }));
+      el.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+    return;
+  }
+  if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
+    const el = getEditableEl(selectedCell, true);
+    if (!el || el.tagName === 'BUTTON') return;
+    if (el.tagName === 'SELECT') {
+      editMode = true; el.classList.add('cell-selected'); el.focus(); openSelectInline(el);
+      setTimeout(function() {
+        const dd = document.getElementById('customDropdown_' + el.id);
+        if (dd) {
+          const si = dd.querySelector('input[type="text"]');
+          if (si) { si.value = e.key; si.dispatchEvent(new Event('input', { bubbles: true })); si.focus(); }
+        }
+      }, 40);
+      e.preventDefault(); return;
+    }
+    e.preventDefault();
+    startEdit(selectedCell, true);
+    if (el) { el.value = e.key; el.dispatchEvent(new Event('input', { bubbles: true })); }
+    return;
+  }
+}, true);
+
+// ── MODAL FOCUSABLE FIELDS ────────────────────────────────────
+function getModalFocusable() {
+  const modal = document.getElementById('ctrlModalBody');
+  if (!modal) return [];
+  return Array.from(modal.querySelectorAll(
+    'input:not([disabled]):not([type="hidden"]), select:not([disabled]), textarea:not([disabled]), button:not([disabled])'
+  )).filter(function(el) {
+    if (el.offsetParent === null) return false;
+    const style = window.getComputedStyle(el);
+    if (style.display === 'none' || style.visibility === 'hidden') return false;
+    let parent = el.parentElement;
+    while (parent && parent !== modal) {
+      const ps = window.getComputedStyle(parent);
+      if (ps.display === 'none' || ps.visibility === 'hidden') return false;
+      parent = parent.parentElement;
+    }
+    const rect = el.getBoundingClientRect();
+    if (rect.width === 0 || rect.height === 0) return false;
+    return true;
+  });
+}
+
+function downloadExcel() {
+  const btn = document.getElementById('downloadBtn');
+  btn.disabled = true;
+  btn.textContent = 'Menyiapkan...';
+  const payload = buildPayload(false);
+  google.script.run
+    .withSuccessHandler(function(base64) {
+      const binary = atob(base64);
+      const bytes  = new Uint8Array(binary.length);
+      for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+      const blob = new Blob([bytes], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      const url  = URL.createObjectURL(blob);
+      const a    = document.createElement('a');
+      a.href     = url;
+      a.download = 'Risk_Assessment_' + (dept || 'RA') + '_' + new Date().toISOString().slice(0,10) + '.xlsx';
+      a.click();
+      URL.revokeObjectURL(url);
+      btn.disabled = false;
+      btn.textContent = '⬇ Download Excel';
+    })
+    .withFailureHandler(function(err) {
+      showToast('Gagal download: ' + err, 'error');
+      btn.disabled = false;
+      btn.textContent = '⬇ Download Excel';
+    })
+    .generateRaExcel(payload);
+}
+</script>
+</body>
+</html>
