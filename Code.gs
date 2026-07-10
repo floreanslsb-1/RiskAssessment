@@ -22,6 +22,7 @@ function doGet(e) {
   const params    = e && e.parameter ? e.parameter : {};
   const raId      = params.raId      || '';
   const returnUrl = params.returnUrl || CONFIG.MAIN_APP_URL;
+  const raConfig  = getRaConfig();
 
   // Info FUP No./Dept ini cuma pemanis tampilan — kalau gagal diambil karena
   // apapun (struktur sheet MOC Portal berubah, dst), form RA tetap harus bisa
@@ -45,6 +46,7 @@ function doGet(e) {
   template.fupNo     = fupNo;
   template.fupLink   = returnUrl;
   template.fupDept   = fupDept;
+  template.raConfig  = raConfig;
 
   return template.evaluate()
     .setTitle('Kajian Risiko — PT. Sayap Mas Utama')
@@ -493,10 +495,11 @@ function generateRaExcel(payload) {
 //   Sig rows: after data
 function buildExcelSheet_(sheet, data) {
   const risks = data.allRisks || [];
+  const raConfig = getRaConfig();
 
   sheet.getRange(1, 1).setValue('FORM RISK ASSESSMENT (RA)');
   sheet.getRange(2, 1).setValue('Dept: ' + (data.dept || ''));
-  sheet.getRange(2, 5).setValue('No. Dokumen: SMU/IMS-00/06-013  |  Revisi: 01');
+  sheet.getRange(2, 5).setValue('No. Dokumen: ' + raConfig.docNo + '  |  Revisi: ' + raConfig.docRev);
   sheet.getRange(3, 1).setValue('Tgl. Update: ' + (data.savedAt || '').slice(0, 10));
   sheet.getRange(4, 1).setValue('No. FUP: ' + (data.fupNo || '-'));
   sheet.getRange(4, 5).setValue('Link FUP: ' + (data.fupLink || '-'));
