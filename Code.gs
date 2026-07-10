@@ -13,7 +13,7 @@
 const CONFIG = {
   SHEET_ID:        '1-dVtUrAJn6Yvo3KzJJemmbgn2pR7-APM7I5KX36tb6c',
   RA_SHEET_NAME:   'Kajian_Risiko',
-  MAIN_SHEET_NAME: 'Template',
+  MAIN_SHEET_NAME: 'Template', // fallback lawas saja — pencarian utama sekarang lewat sheet tahun (lihat findMainSheetRowByRaId_)
   MAIN_APP_URL:    'https://script.google.com/a/macros/wingscorp.com/s/AKfycbxZxJh54v-YO8zQ0TFBg08yzrFHJL9tCXBPmKkC1fcbOCx3wx431Bz86zyPNVATszJP/exec',
   LOGO_FILE_ID:    '1gVRF0XPZ806GOF58AK7qI7DaY6VMopdl',
 };
@@ -23,10 +23,20 @@ function doGet(e) {
   const raId      = params.raId      || '';
   const returnUrl = params.returnUrl || CONFIG.MAIN_APP_URL;
 
-  const fupResult = raId ? findMainSheetRowByRaId_(raId) : null;
-  const col       = getColumnMap();
-  const fupNo     = fupResult ? (fupResult.rowData[col.No_Registrasi - 1] || '') : '';
-  const fupDept   = fupResult ? (fupResult.rowData[col.Departemen   - 1] || '') : '';
+  // Info FUP No./Dept ini cuma pemanis tampilan — kalau gagal diambil karena
+  // apapun (struktur sheet MOC Portal berubah, dst), form RA tetap harus bisa
+  // dibuka dan diisi, bukan malah blank error.
+  let fupNo = '', fupDept = '';
+  try {
+    const fupResult = raId ? findMainSheetRowByRaId_(raId) : null;
+    if (fupResult) {
+      const col = getColumnMap();
+      fupNo   = fupResult.rowData[col.No_Registrasi - 1] || '';
+      fupDept = fupResult.rowData[col.Departemen   - 1] || '';
+    }
+  } catch (err) {
+    console.error('doGet: gagal ambil info FUP — ' + err.message);
+  }
 
   const template = HtmlService.createTemplateFromFile('index');
   template.raId      = raId;
@@ -231,15 +241,30 @@ function findMainSheetRowByRaId_(raId) {
   try {
     if (!raId) return null;
     const ss       = SpreadsheetApp.openById(CONFIG.SHEET_ID);
-    const sheet    = ss.getSheetByName(CONFIG.MAIN_SHEET_NAME);
-    if (!sheet) return null;
     const col      = getColumnMap();
     const baseRaId = raId.replace(/_\d+$/, '');
-    const data     = sheet.getDataRange().getValues();
-    for (let i = 0; i < data.length; i++) {
-      const cellRaId = String(data[i][col.RA_ID - 1] || '').replace(/_\d+$/, '');
-      if (cellRaId && cellRaId === baseRaId) {
-        return { rowNumber: i + 1, rowData: data[i] };
+
+    // MOC Portal sekarang punya satu sheet per tahun (mis. "2026", "2027").
+    // Dokumen yang lagi diisi Risk Assessment-nya bisa saja dibuat tahun ini
+    // atau tahun lalu, jadi kita coba beberapa sheet tahun sebelum menyerah.
+    // Fallback ke CONFIG.MAIN_SHEET_NAME kalau suatu saat MOC Portal masih
+    // pakai skema satu-sheet lama.
+    const currentYear = new Date().getFullYear();
+    const candidates  = [];
+    for (let y = currentYear; y >= currentYear - 2; y--) {
+      const s = ss.getSheetByName(String(y));
+      if (s) candidates.push(s);
+    }
+    const legacy = ss.getSheetByName(CONFIG.MAIN_SHEET_NAME);
+    if (legacy && candidates.indexOf(legacy) === -1) candidates.push(legacy);
+
+    for (const sheet of candidates) {
+      const data = sheet.getDataRange().getValues();
+      for (let i = 0; i < data.length; i++) {
+        const cellRaId = String(data[i][col.RA_ID - 1] || '').replace(/_\d+$/, '');
+        if (cellRaId && cellRaId === baseRaId) {
+          return { rowNumber: i + 1, rowData: data[i], sheet: sheet };
+        }
       }
     }
     return null;
@@ -541,13 +566,10 @@ function buildExcelSheet_(sheet, data) {
 
 function updateMainSheetKajianStatus_(raId, status) {
   try {
-    const ss     = SpreadsheetApp.openById(CONFIG.SHEET_ID);
-    const sheet  = ss.getSheetByName(CONFIG.MAIN_SHEET_NAME);
-    if (!sheet) return;
-    const col    = getColumnMap();
     const result = findMainSheetRowByRaId_(raId);
-    if (!result) { console.error('updateMainSheetKajianStatus_: row not found for raId: ' + raId); return; }
-    sheet.getRange(result.rowNumber, col.Status_Kajian_Risiko).setValue(status);
+    if (!result || !result.sheet) { console.error('updateMainSheetKajianStatus_: row not found for raId: ' + raId); return; }
+    const col = getColumnMap();
+    result.sheet.getRange(result.rowNumber, col.Status_Kajian_Risiko).setValue(status);
   } catch(e) { console.error('updateMainSheetKajianStatus_ failed: ' + e.message); }
 }
 
@@ -590,13 +612,14 @@ function getColumnMap() {
   const cache  = CacheService.getScriptCache();
   const cached = cache.get('COL_MAP');
   if (cached) return JSON.parse(cached);
-  const ss          = SpreadsheetApp.openById(CONFIG.SHEET_ID);
-  const mainSheet   = ss.getSheetByName(CONFIG.MAIN_SHEET_NAME);
-  const mainSheetId = mainSheet.getSheetId();
-  const map         = {};
+  const ss  = SpreadsheetApp.openById(CONFIG.SHEET_ID);
+  const map = {};
+  // Layout kolom sama persis di semua sheet tahun MOC Portal (hasil duplikat
+  // identik satu sama lain), jadi tidak perlu diikat ke nama sheet tertentu —
+  // ambil saja semua named range apa adanya. Ini juga artinya file ini tidak
+  // perlu diubah lagi kalau MOC Portal bikin sheet tahun baru (2027, dst).
   ss.getNamedRanges().forEach(nr => {
-    if (nr.getRange().getSheet().getSheetId() === mainSheetId)
-      map[nr.getName().trim()] = nr.getRange().getColumn();
+    try { map[nr.getName().trim()] = nr.getRange().getColumn(); } catch(e) {}
   });
   cache.put('COL_MAP', JSON.stringify(map), 21600);
   return map;
@@ -608,12 +631,10 @@ function debugUpdateStatus() {
   const result = findMainSheetRowByRaId_(testRaId);
   Logger.log('findMainSheetRowByRaId_ result: ' + JSON.stringify(result));
   if (!result) { Logger.log('ERROR: Row not found!'); return; }
-  Logger.log('Row number: ' + result.rowNumber);
+  Logger.log('Row number: ' + result.rowNumber + ' (sheet: ' + result.sheet.getName() + ')');
   const col = getColumnMap();
   Logger.log('Status_Kajian_Risiko column: ' + col.Status_Kajian_Risiko);
-  const ss      = SpreadsheetApp.openById(CONFIG.SHEET_ID);
-  const sheet   = ss.getSheetByName(CONFIG.MAIN_SHEET_NAME);
-  const rowData = sheet.getRange(result.rowNumber, 1, 1, sheet.getLastColumn()).getValues()[0];
+  const rowData = result.sheet.getRange(result.rowNumber, 1, 1, result.sheet.getLastColumn()).getValues()[0];
   Logger.log('RA_ID value in row: ' + rowData[col.RA_ID - 1]);
   Logger.log('Status_Kajian_Risiko value: ' + rowData[col.Status_Kajian_Risiko - 1]);
 }
@@ -622,4 +643,5 @@ function clearAllCaches() {
   const cache = CacheService.getScriptCache();
   cache.remove('COL_MAP');
   cache.remove('RA_COL_MAP');
+  cache.remove('RA_CONFIG');
 }
