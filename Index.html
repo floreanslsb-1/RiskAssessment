@@ -477,9 +477,9 @@ button { cursor: pointer; }
         <span class="dept-line">Dept: <strong id="deptDisplay">—</strong></span>
       </div>
       <div class="header-meta">
-        <div class="meta-row"><span class="label">No. Dokumen</span><span class="value">SMU/IMS-00/06-013</span></div>
-        <div class="meta-row"><span class="label">Revisi</span><span class="value">01</span></div>
-        <div class="meta-row"><span class="label">Tgl. Update</span><span class="value" id="lastUpdateDate">—</span></div>
+        <div class="meta-row"><span class="label">No. Dokumen</span><span class="value"><?= raConfig.docNo ?></span></div>
+        <div class="meta-row"><span class="label">Revisi</span><span class="value"><?= raConfig.docRev ?></span></div>
+        <div class="meta-row"><span class="label">Tgl. Berlaku</span><span class="value"><?= raConfig.effectiveDateFormatted ?></span></div>
       </div>
     </div>
   </div>
@@ -570,169 +570,10 @@ button { cursor: pointer; }
 const ROP_LEVELS = [10, 8, 6, 4, 1];
 const RS_LEVELS  = [100, 40, 21, 8, 2];
 
-const ROP_LABELS = {
-  10: 'Kejadian bisa terjadi di setiap shift',
-  8:  'Kejadian bisa terjadi 1-2 kali dalam 1 bulan',
-  6:  'Kejadian bisa terjadi 1-2 kali dalam 1 tahun',
-  4:  'Kejadian bisa terjadi sekali dalam 2 tahun',
-  1:  'Kejadian kecil kemungkinan terjadi dalam waktu kurang dari 2-5 tahun',
-};
-
-const RS_LABELS_BY_KATEGORI = {
-  'Quality': {
-    100: 'Kejadian recall yang berisiko berdampak pada kesehatan konsumen',
-    40:  'Kejadian recall yang tidak berisiko berdampak pada kesehatan konsumen namun berdampak pada brand',
-    21:  'Komplain dari konsumen terkait kualitas atau kuantitas produk',
-    8:   'Produksi menghasilkan produk tidak sesuai standar QC (In Process Control) Defect Major',
-    2:   'Produksi menghasilkan produk tidak sesuai standar QC (In Process Control) Defect Minor',
-  },
-  'Halal': {
-    100: 'Kejadian recall akibat adanya cemaran bahan haram yang berakibat logo halal dicabut',
-    40:  'Kejadian recall akibat adanya cemaran bahan haram yang berdampak pada brand',
-    21:  'Kejadian recall akibat adanya cemaran bahan haram yang tidak berdampak pada brand',
-    8:   'Menyebabkan cemaran najis berat dan sedang ke produk/fasilitas',
-    2:   'Menyebabkan cemaran material tidak halal atau belum di-inquiry ke produk/fasilitas',
-  },
-  'OS Proses & Human': {
-    100: 'Bisa mengakibatkan kematian akibat kecelakaan',
-    40:  'Dapat menyebabkan kecelakaan parah yang menyebabkan cacat tetap',
-    21:  'Dapat menyebabkan kecelakaan dengan kehilangan jam kerja',
-    8:   'Dapat menyebabkan kecelakaan tanpa kehilangan waktu kerja: cedera yang memerlukan perawatan medis',
-    2:   'Dapat menyebabkan cedera ringan membutuhkan pertolongan pertama',
-  },
-  'OH': {
-    100: 'Bisa mengakibatkan kematian akibat penyakit',
-    40:  'Dapat menyebabkan penyakit parah kronis (pneumonia, kebutaan, keguguran, tuli, kanker, dll)',
-    21:  'Dapat menyebabkan penyakit yang membuat pekerja tidak dapat kembali ke pekerjaan biasa',
-    8:   'Dapat menyebabkan sakit sementara tanpa kehilangan waktu kerja yang memerlukan perawatan medis',
-    2:   'Dapat menyebabkan sakit yang membutuhkan pertolongan pertama',
-  },
-  'ENV': {
-    100: 'Terjadi tumpahan cemaran yang masuk ke badan lingkungan dan dapat mengakibatkan issue eksternal sampai ke ranah hukum',
-    40:  'Terjadi tumpahan cemaran yang masuk ke badan lingkungan, sudah menimbulkan issue eksternal namun masih dapat diatasi dengan/tanpa bantuan pihak ketiga',
-    21:  'Terjadi tumpahan cemaran yang masih dapat diatasi internal dan belum masuk ke badan lingkungan',
-    8:   'Terjadi insiden yang berpotensi dapat menyebabkan tumpahan cemaran',
-    2:   'Terdapat kondisi tidak safe (unsafe condition dan action) yang berpotensi dapat menimbulkan insiden tumpahan cemaran',
-  },
-};
-
-const ASUMSI_BY_KATEGORI = {
-  'Quality': [
-    'Machine - Alat tidak terkalibrasi / terverifikasi',
-    'Material - Bahan / reagen expired',
-    'Material - Bahan awal (BB / BK) tidak sesuai spesifikasi',
-    'Material - Bahan baku tidak tersedia',
-    'Material - Dokumen tidak lengkap / sesuai',
-    'Material - Jumlah dan atau jenis bahan atau produk tidak sesuai',
-    'Kapasitas storage / area / ruangan overload',
-    'Material - Kerusakan kemasan bahan / produk',
-    'Methode - Kesalahan methode / cara kerja',
-    'Material - Kesalahan pemesanan material / jasa',
-    'Material - Keterlambatan kedatangan',
-    'Material - Kontaminasi kotoran / najis / bahan tidak halal',
-    'Material - Mixed up (ketercampurbauran)',
-    'Man - Salah pemberian identitas / status',
-    'Methode - Sampel tidak representatif (mewakili)',
-    'Man - Tidak dilakukan record / tidak sesuai waktunya',
-    'Machine - Tidak sesuai centerline mesin',
-    'Material - Tidak sesuai spesifikasi produk (OOS)',
-    'Material - Cost proses / bahan tinggi',
-    'Machine - Kerusakan equipment, mesin, instrumen',
-    'Material - Perubahan identitas bahan / produk',
-    'Methode - Perubahan jadwal',
-    'Man - Kesalahan penentuan otorisasi',
-  ],
-  'Halal': [
-    'Material - Dokumen pendukung bahan/material expired',
-    'Material - Dokumen pendukung bahan/material tidak lengkap',
-    'Material - Bahan baku dan bahan kemas primer belum terdaftar ke bahan halal',
-    'Material - Bahan baku terkontaminasi najis',
-    'Material - Kemasan primer terkontaminasi najis',
-    'Machine - Equipment dan storage terpapar kotoran & najis',
-    'Material - Kontaminasi dari personil',
-    'Material - Terkontaminasi cairan pelumas',
-    'Material - Terkontaminasi bahan pembersih / sanitizer',
-    'Material - Campur baur dengan bahan/produk tidak halal',
-  ],
-  'OS Proses & Human': [
-    'A-Anggota tubuh terkena pentalan benda berputar',
-    'A-Menginjak benda tajam',
-    'A-Tangan tergores material',
-    'A-Terjepit Benda Bergerak',
-    'A-Terjepit Benda Berputar',
-    'A-Terjepit material',
-    'A-Tersayat Benda Tajam',
-    'B-Terbentur',
-    'B-Tertimpa Benda Jatuh',
-    'C-Tertabrak Forklift',
-    'C-Tertabrak Hand Pallet Manual',
-    'C-Tertabrak Kendaraan Eksternal',
-    'C-Tertabrak Kendaraan Operasional',
-    'C-Tertabrak Pallet Mover',
-    'D-Terjatuh pada ketinggian berbeda',
-    'D-Terjatuh pada ketinggian sama',
-    'D-Terpeleset',
-    'D-Tersandung',
-    'E-Badan terpapar bahan kimia',
-    'E-Badan Terpercik Api',
-    'E-Ledakan (Heat)',
-    'E-Ledakan (Pencampuran Bahan Kimia)',
-    'E-Ledakan (Pressure)',
-    'E-Ledakan (Proses)',
-    'E-Mata Terpercik api',
-    'E-Mata terpercik bahan kimia',
-    'E-Tangan terpapar bahan kimia',
-    'E-Tangan Terpercik api',
-    'E-Terkena Permukaan Panas',
-    'E-Terpapar Serpihan Tajam',
-    'E-Tersengat Listrik',
-    'E-Wajah terpapar bahan kimia',
-    'F-Kebakaran',
-    'Keadaan Darurat',
-  ],
-  'OH': [
-    'Ergonomi-Mengangkat melebihi kapasitas',
-    'Ergonomi-Posisi salah saat mengangkat',
-    'Ergonomi-Posisi tubuh Aneh/Canggung',
-    'Ergonomi-Repetisi pekerjaan',
-    'Fisika-ISBB (Suhu Tubuh)',
-    'Fisika-ISBB (Terpapar panas)',
-    'Fisika-Pencahayaan Tidak Memadai',
-    'Fisika-Suhu Lingkungan Udara Dingin',
-    'Fisika-Suhu Lingkungan Udara Panas',
-    'Fisika-Terpapar getaran',
-    'Fisika-Terpapar Kebisingan',
-    'Fisika-Terpapar Radiasi',
-    'Fisika-Terpapar Radiasi Elektro Magnetik',
-    'Kimia-Terpapar Debu',
-    'Kimia-Terpapar kebauan area',
-    'Kimia-Terhirup asap',
-    'Biologi-Terpapar oleh mikroorganisme',
-    'Psikologi-Beban Kerja Berlebih',
-    'Fisika-Terpapar Debu',
-    'Kimia-Terpapar Uap',
-    'Kimia-Terpapar Gas',
-  ],
-  'ENV': [
-    'B3-Pencemaran bahan kimia (B3) cair',
-    'B3-Pencemaran bahan kimia (B3) padat',
-    'EA-Penggunaan Air Bersih',
-    'EF-Penggunaan Bahan Bakar Solar',
-    'EG-Penggunaan Gas LPG/Gas PGN',
-    'EL-Penggunaan Energi Listrik',
-    'LB3-Pencemaran Limbah B3 Cair',
-    'LB3-Pencemaran Limbah B3 Padat',
-    'PPA-Pencemaran material cair ke badan air',
-    'PPA-Pencemaran material cair ke drainase',
-    'PPA-Pencemaran material padat ke drainase',
-    'PPU-Pencemaran Udara dari Sumber bergerak',
-    'PPU-Pencemaran Udara dari Sumber Tidak Bergerak',
-    'PPU-Tercemar Kebauan Lingkungan',
-    'PPU-Tercemar Kebisingan Lingkungan',
-    'SP-Menimbulkan Sampah recycle (plastik, kertas)',
-    'SP-Menimbulkan Sampah Residu (sampah yang tidak bisa di daur ulang)',
-  ],
-};
+const RA_CONFIG = <?!= JSON.stringify(raConfig) ?>;
+const ROP_LABELS = RA_CONFIG.ropLabels;
+const RS_LABELS_BY_KATEGORI = RA_CONFIG.rsLabelsByKategori;
+const ASUMSI_BY_KATEGORI = RA_CONFIG.asumsiByKategori;
 
 const KATEGORI_BY_STRATEGI = {
   'Avoidance':    ['Eliminasi'],
@@ -1155,7 +996,7 @@ function buildTableRow(risk, idx) {
   const levelBefore = scoreBefore ? computeLevel(scoreBefore) : null;
   const after = (rop && rs) ? computeEvalAfter(rop, rs, risk.riskControls || []) : null;
 
-  const kategoriOpts = ['Quality','Halal','OS Proses & Human','OH','ENV'];
+  const kategoriOpts = RA_CONFIG.kategoriList;
   const ropOpts = [10,8,6,4,1];
   const rsOpts  = [100,40,21,8,2];
   const isOH = risk.kategoriRisiko === 'OH' || risk.kategoriRisiko === 'OS Proses & Human';
