@@ -62,6 +62,7 @@ function doGet(e) {
   template.fupLink   = returnUrl;
   template.fupDept   = fupDept;
   template.raConfig  = raConfig;
+  template.selfUrl   = selfUrl;
 
   return template.evaluate()
     .setTitle('Kajian Risiko — PT. Sayap Mas Utama')
