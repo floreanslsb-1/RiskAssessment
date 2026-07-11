@@ -382,14 +382,15 @@ function computeEvalAfter_(ropBefore, rsBefore, controls) {
   controls.forEach(function(c) {
     const strat = (c.strategi || '').toLowerCase();
     const kat   = (c.kategori || '').toLowerCase();
-    if (strat === 'mitigate' && kat === 'engineering control') {
+    const done  = c.status === 'Done'; // FIX: konsisten dengan client — skor cuma turun kalau Done
+    if (strat === 'mitigate' && kat === 'engineering control' && done) {
       ropIdx = Math.min(ropIdx + 1, ROP_LEVELS.length - 1);
       rsIdx  = Math.min(rsIdx  + 1, RS_LEVELS.length  - 1);
     }
-    if ((strat === 'mitigate' || strat === 'acceptance') && kat === 'administration control') {
+    if ((strat === 'mitigate' || strat === 'acceptance') && kat === 'administration control' && done) {
       if (!hasAdminControl) { ropIdx = Math.min(ropIdx + 1, ROP_LEVELS.length - 1); hasAdminControl = true; }
     }
-    if (strat === 'acceptance' && kat === 'ppe / apd') {
+    if (strat === 'acceptance' && kat === 'ppe / apd' && done) {
       if (!hasPPE) { rsIdx = Math.min(rsIdx + 1, RS_LEVELS.length - 1); hasPPE = true; }
     }
   });
