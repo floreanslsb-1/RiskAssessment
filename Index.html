@@ -587,6 +587,7 @@ const KATEGORI_BY_STRATEGI = {
 // ── STATE ────────────────────────────────────────────────────
 let raId      = '<?= raId ?>';
 let returnUrl = '<?= returnUrl ?>';
+let selfUrl   = '<?= selfUrl ?>';
 let logoB64   = '<?= logoB64 ?>';
 let fupNo     = '<?= fupNo ?>';
 let fupLink   = '<?= fupLink ?>';
@@ -610,7 +611,7 @@ window.onload = function() {
   if (dept) document.getElementById('deptDisplay').textContent = dept;
 
   const gearLink = document.getElementById('adminGearLink');
-  if (gearLink) gearLink.href = window.location.origin + window.location.pathname + '?admin=1';
+  if (gearLink) gearLink.href = selfUrl + '?admin=1';
 
   document.getElementById('addRowBtn').addEventListener('click', function() {
     addRiskCard();
