@@ -28,8 +28,9 @@ function doGet(e) {
       );
     }
     const adminTemplate = HtmlService.createTemplateFromFile('RaAdmin');
-    adminTemplate.raConfig = getRaConfig();
-    adminTemplate.isAdmin  = true;
+    adminTemplate.raConfig    = getRaConfig();
+    adminTemplate.isAdmin     = true;
+    adminTemplate.adminEmails = getRaAdminEmailsList_();
     return adminTemplate.evaluate()
       .setTitle('Admin Panel — Kajian Risiko')
       .addMetaTag('viewport', 'width=device-width, initial-scale=1');
