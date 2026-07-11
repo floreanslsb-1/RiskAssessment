@@ -38,6 +38,7 @@ function doGet(e) {
   const raId      = params.raId      || '';
   const returnUrl = params.returnUrl || CONFIG.MAIN_APP_URL;
   const raConfig  = getRaConfig();
+  const selfUrl   = ScriptApp.getService().getUrl();
 
   // Info FUP No./Dept ini cuma pemanis tampilan — kalau gagal diambil karena
   // apapun (struktur sheet MOC Portal berubah, dst), form RA tetap harus bisa
