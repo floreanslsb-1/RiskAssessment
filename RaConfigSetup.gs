@@ -16,8 +16,15 @@ function setupRaConfig() {
   if (sheet) ss.deleteSheet(sheet);
   sheet = ss.insertSheet('RA_Config');
 
+  // FIX: dulu ini hapus SEMUA nama berawalan 'RA_', termasuk named range
+  // asli sheet Kajian_Risiko (RA_RA_ID, dst) yang juga pakai awalan sama.
+  // Sekarang cuma hapus 8 named range yang memang dibuat script ini.
+  const RA_CONFIG_RANGE_NAMES = [
+    'RA_DOC_NO', 'RA_DOC_REV', 'RA_DOC_EFFECTIVE_DATE', 'RA_MAIN_APP_URL',
+    'RA_KATEGORI_TABLE', 'RA_ROP_LABEL_TABLE', 'RA_RS_LABEL_TABLE', 'RA_ASUMSI_TABLE',
+  ];
   ss.getNamedRanges().forEach(function(nr) {
-    if (nr.getName().indexOf('RA_') === 0) nr.remove();
+    if (RA_CONFIG_RANGE_NAMES.indexOf(nr.getName()) !== -1) nr.remove();
   });
 
   let row = 1;
