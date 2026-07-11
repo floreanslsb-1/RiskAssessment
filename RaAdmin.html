@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html>
+<head>
+<base target="_top">
+<meta charset="utf-8">
+<style>
+  :root {
+    --red: #C8102E; --red-dark: #A00D26; --black: #1A1A1A;
+    --white: #FFFFFF; --gray-100: #F3F4F6; --gray-300: #D1D5DB;
+    --gray-500: #6B7280; --gray-900: #111827; --radius: 8px;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,.08); --shadow-lg: 0 8px 24px rgba(0,0,0,.15);
+    --transition: 150ms ease;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: -apple-system, 'Segoe UI', Roboto, sans-serif; background: var(--gray-100); color: var(--black); }
+  .topbar { background: var(--white); border-bottom: 3px solid var(--red); padding: 14px 24px; display: flex; align-items: center; justify-content: space-between; }
+  .topbar h1 { font-size: 16px; margin: 0; font-weight: 700; }
+  .topbar .sub { font-size: 11px; color: var(--gray-500); text-transform: uppercase; letter-spacing: .04em; }
+  .layout { display: flex; min-height: calc(100vh - 57px); }
+  .nav { width: 220px; flex-shrink: 0; background: var(--white); border-right: 1px solid var(--gray-300); padding: 12px; }
+  .nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: var(--radius); cursor: pointer; font-size: 13px; font-weight: 500; color: var(--gray-500); margin-bottom: 4px; transition: all var(--transition); }
+  .nav-item:hover { background: var(--gray-100); }
+  .nav-item.active { background: #FDEBEC; color: var(--red); }
+  .panel { flex: 1; padding: 28px 32px; max-width: 760px; }
+  .panel h2 { font-size: 18px; margin: 0 0 6px; }
+  .panel .desc { font-size: 12px; color: var(--gray-500); margin: 0 0 20px; }
+  label.field-label { font-size: 12px; color: var(--gray-500); font-weight: 600; display: block; margin-bottom: 4px; }
+  input[type=text], input[type=date], input[type=url], select, textarea {
+    width: 100%; padding: 8px 10px; border: 1px solid var(--gray-300); border-radius: var(--radius);
+    font-size: 13px; font-family: inherit; background: var(--white);
+  }
+  input:focus, select:focus, textarea:focus { outline: none; border-color: var(--red); box-shadow: 0 0 0 3px rgba(200,16,46,.1); }
+  .form-row { margin-bottom: 14px; max-width: 420px; }
+  button { font-family: inherit; cursor: pointer; border: none; border-radius: var(--radius); font-size: 13px; font-weight: 600; transition: all var(--transition); }
+  .btn-primary { background: var(--red); color: white; padding: 9px 20px; }
+  .btn-primary:hover { background: var(--red-dark); }
+  .btn-primary:disabled { opacity: .5; cursor: not-allowed; }
+  .btn-secondary { background: var(--white); border: 1px solid var(--gray-300) !important; color: var(--black); padding: 8px 14px; }
+  .btn-secondary:hover { background: var(--gray-100); }
+  .icon-btn { background: none; color: var(--gray-500); padding: 4px 8px; font-size: 15px; }
+  .icon-btn:hover { color: var(--red); }
+  .list-row { display: flex; align-items: center; gap: 8px; border: 1px solid var(--gray-300); border-radius: var(--radius); padding: 7px 10px; margin-bottom: 6px; background: var(--white); }
+  .list-row input { border: none; flex: 1; padding: 2px; background: transparent; }
+  .add-row { display: flex; gap: 8px; margin-top: 10px; }
+  .add-row input { flex: 1; }
+  .grid-row { display: flex; gap: 10px; align-items: center; margin-bottom: 6px; }
+  .grid-row .lvl { width: 36px; flex-shrink: 0; font-size: 12px; color: var(--gray-500); text-align: center; font-weight: 600; }
+  .grid-row input { flex: 1; }
+  .section-divider { border-top: 1px solid var(--gray-300); margin: 18px 0; padding-top: 18px; }
+  .toast { position: fixed; bottom: 24px; right: 24px; background: var(--gray-900); color: white; padding: 10px 18px; border-radius: var(--radius); font-size: 13px; box-shadow: var(--shadow-lg); opacity: 0; transform: translateY(10px); transition: all 250ms ease; pointer-events: none; }
+  .toast.show { opacity: 1; transform: translateY(0); }
+  .toast.error { background: var(--red); }
+  .count-badge { font-size: 11px; color: var(--gray-500); }
+  .locked-note { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--gray-500); margin-bottom: 12px; }
+  .denied { display: flex; align-items: center; justify-content: center; height: 100vh; font-family: sans-serif; color: var(--gray-500); }
+</style>
+</head>
+<body>
+
+<? if (!isAdmin) { ?>
+  <div class="denied">Akses ditolak. Halaman ini khusus admin RA app.</div>
+<? } else { ?>
+
+<div class="topbar">
+  <div>
+    <h1>Admin Panel — Kajian Risiko</h1>
+    <div class="sub">RA Web App</div>
+  </div>
+</div>
+
+<div class="layout">
+  <div class="nav" id="nav"></div>
+  <div class="panel" id="panel"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const RA_CONFIG = <?!= JSON.stringify(raConfig) ?>;
+const LEVELS_ROP = [10, 8, 6, 4, 1];
+const LEVELS_RS  = [100, 40, 21, 8, 2];
+
+let active = 'info';
+let asumsiKategori = (RA_CONFIG.kategoriList || [])[0] || '';
+let rsKategori = (RA_CONFIG.kategoriList || [])[0] || '';
+
+const tabs = [
+  { id: 'info',    label: 'Info Dokumen' },
+  { id: 'kategori', label: 'Kategori Risiko' },
+  { id: 'labels',  label: 'Label ROP & RS' },
+  { id: 'asumsi',  label: 'Asumsi / Bahaya' },
+];
+
+function renderNav() {
+  document.getElementById('nav').innerHTML = tabs.map(function(t) {
+    return '<div class="nav-item ' + (active === t.id ? 'active' : '') + '" onclick="setActive(\'' + t.id + '\')">' + t.label + '</div>';
+  }).join('');
+}
+
+function setActive(id) { active = id; renderNav(); renderPanel(); }
+
+function toast(msg, isError) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show' + (isError ? ' error' : '');
+  setTimeout(function() { t.className = 'toast'; }, 2600);
+}
+
+function withBusyBtn(btn, fn) {
+  btn.disabled = true;
+  const orig = btn.textContent;
+  btn.textContent = 'Menyimpan...';
+  fn(function() { btn.disabled = false; btn.textContent = orig; });
+}
+
+// ── TAB: INFO DOKUMEN ──────────────────────────────────────
+function renderInfoTab() {
+  const c = RA_CONFIG;
+  const effDate = c.effectiveDate ? new Date(c.effectiveDate).toISOString().slice(0, 10) : '';
+  document.getElementById('panel').innerHTML = `
+    <h2>Info Dokumen</h2>
+    <p class="desc">Tampil di header form Kajian Risiko dan export Excel.</p>
+    <div class="form-row"><label class="field-label">No. Dokumen</label>
+      <input type="text" id="f_docNo" value="${esc(c.docNo)}"></div>
+    <div class="form-row"><label class="field-label">Revisi</label>
+      <input type="text" id="f_docRev" value="${esc(c.docRev)}"></div>
+    <div class="form-row"><label class="field-label">Tanggal Berlaku</label>
+      <input type="date" id="f_effDate" value="${effDate}"></div>
+    <div class="form-row"><label class="field-label">URL MOC Portal (Main App URL)</label>
+      <input type="url" id="f_mainUrl" value="${esc(c.mainAppUrl)}"></div>
+    <button class="btn-primary" id="btnSaveInfo" onclick="saveInfo()">Simpan</button>
+  `;
+}
+
+function saveInfo() {
+  const btn = document.getElementById('btnSaveInfo');
+  withBusyBtn(btn, function(done) {
+    const data = {
+      docNo: document.getElementById('f_docNo').value.trim(),
+      docRev: document.getElementById('f_docRev').value.trim(),
+      effectiveDate: document.getElementById('f_effDate').value,
+      mainAppUrl: document.getElementById('f_mainUrl').value.trim(),
+    };
+    google.script.run
+      .withSuccessHandler(function(res) {
+        done();
+        if (res.success) { Object.assign(RA_CONFIG, data); toast('Tersimpan.'); }
+        else toast(res.error || 'Gagal menyimpan.', true);
+      })
+      .withFailureHandler(function(err) { done(); toast(String(err), true); })
+      .saveRaInfoDokumen(data);
+  });
+}
+
+// ── TAB: KATEGORI RISIKO ───────────────────────────────────
+function renderKategoriTab() {
+  const list = RA_CONFIG.kategoriList || [];
+  document.getElementById('panel').innerHTML = `
+    <h2>Kategori Risiko</h2>
+    <p class="desc">Menghapus kategori juga akan menghapus Label RS dan Asumsi/Bahaya milik kategori itu. Hati-hati.</p>
+    <div id="kategoriList">
+      ${list.map(function(k, i) {
+        return '<div class="list-row"><input value="' + esc(k) + '" data-idx="' + i + '" onchange="onKategoriEdit(this)"/>' +
+          '<button class="icon-btn" onclick="removeKategori(' + i + ')">✕</button></div>';
+      }).join('')}
+    </div>
+    <div class="add-row">
+      <input type="text" id="newKategoriInput" placeholder="Nama kategori baru">
+      <button class="btn-secondary" onclick="addKategori()">+ Tambah</button>
+    </div>
+    <div class="section-divider">
+      <button class="btn-primary" id="btnSaveKategori" onclick="saveKategori()">Simpan Perubahan</button>
+    </div>
+  `;
+}
+
+function onKategoriEdit(input) {
+  const i = Number(input.dataset.idx);
+  RA_CONFIG.kategoriList[i] = input.value;
+}
+
+function addKategori() {
+  const input = document.getElementById('newKategoriInput');
+  const val = input.value.trim();
+  if (!val) return;
+  if (RA_CONFIG.kategoriList.includes(val)) { toast('Kategori sudah ada.', true); return; }
+  RA_CONFIG.kategoriList.push(val);
+  if (!RA_CONFIG.rsLabelsByKategori[val]) RA_CONFIG.rsLabelsByKategori[val] = {};
+  if (!RA_CONFIG.asumsiByKategori[val]) RA_CONFIG.asumsiByKategori[val] = [];
+  renderKategoriTab();
+}
+
+function removeKategori(i) {
+  const kat = RA_CONFIG.kategoriList[i];
+  const asumsiCount = (RA_CONFIG.asumsiByKategori[kat] || []).length;
+  if (!confirm('Hapus kategori "' + kat + '"? Ini akan menghapus ' + asumsiCount + ' item Asumsi/Bahaya dan Label RS milik kategori ini. Lanjutkan?')) return;
+  RA_CONFIG.kategoriList.splice(i, 1);
+  delete RA_CONFIG.rsLabelsByKategori[kat];
+  delete RA_CONFIG.asumsiByKategori[kat];
+  renderKategoriTab();
+}
+
+function saveKategori() {
+  const btn = document.getElementById('btnSaveKategori');
+  withBusyBtn(btn, function(done) {
+    google.script.run
+      .withSuccessHandler(function(res) {
+        done();
+        if (res.success) toast('Tersimpan.');
+        else toast(res.error || 'Gagal menyimpan.', true);
+      })
+      .withFailureHandler(function(err) { done(); toast(String(err), true); })
+      .saveRaKategoriList(RA_CONFIG.kategoriList);
+  });
+}
+
+// ── TAB: LABEL ROP & RS ────────────────────────────────────
+function renderLabelsTab() {
+  const rop = RA_CONFIG.ropLabels || {};
+  const rs = (RA_CONFIG.rsLabelsByKategori || {})[rsKategori] || {};
+  document.getElementById('panel').innerHTML = `
+    <h2>Label ROP & RS</h2>
+    <p class="desc">Angka level terkunci (menentukan perhitungan skor) — hanya teks deskripsi yang bisa diedit.</p>
+
+    <label class="field-label">ROP (berlaku untuk semua kategori)</label>
+    <div id="ropGrid">
+      ${LEVELS_ROP.map(function(lvl) {
+        return '<div class="grid-row"><span class="lvl">' + lvl + '</span>' +
+          '<input value="' + esc(rop[lvl] || '') + '" data-lvl="' + lvl + '" onchange="onRopEdit(this)"/></div>';
+      }).join('')}
+    </div>
+
+    <div class="section-divider">
+      <label class="field-label">RS untuk kategori</label>
+      <select id="rsKategoriSelect" onchange="rsKategori=this.value;renderLabelsTab()" style="max-width:220px;margin-bottom:12px">
+        ${(RA_CONFIG.kategoriList || []).map(function(k) {
+          return '<option value="' + esc(k) + '" ' + (k === rsKategori ? 'selected' : '') + '>' + esc(k) + '</option>';
+        }).join('')}
+      </select>
+      <div id="rsGrid">
+        ${LEVELS_RS.map(function(lvl) {
+          return '<div class="grid-row"><span class="lvl">' + lvl + '</span>' +
+            '<input value="' + esc(rs[lvl] || '') + '" data-lvl="' + lvl + '" onchange="onRsEdit(this)"/></div>';
+        }).join('')}
+      </div>
+    </div>
+    <button class="btn-primary" id="btnSaveLabels" onclick="saveLabels()">Simpan Semua Label</button>
+  `;
+}
+
+function onRopEdit(input) {
+  RA_CONFIG.ropLabels[input.dataset.lvl] = input.value;
+}
+function onRsEdit(input) {
+  if (!RA_CONFIG.rsLabelsByKategori[rsKategori]) RA_CONFIG.rsLabelsByKategori[rsKategori] = {};
+  RA_CONFIG.rsLabelsByKategori[rsKategori][input.dataset.lvl] = input.value;
+}
+
+function saveLabels() {
+  const btn = document.getElementById('btnSaveLabels');
+  withBusyBtn(btn, function(done) {
+    google.script.run
+      .withSuccessHandler(function(res) {
+        done();
+        if (res.success) toast('Tersimpan.');
+        else toast(res.error || 'Gagal menyimpan.', true);
+      })
+      .withFailureHandler(function(err) { done(); toast(String(err), true); })
+      .saveRaLabels(RA_CONFIG.ropLabels, RA_CONFIG.rsLabelsByKategori);
+  });
+}
+
+// ── TAB: ASUMSI / BAHAYA ───────────────────────────────────
+function renderAsumsiTab() {
+  const items = (RA_CONFIG.asumsiByKategori || {})[asumsiKategori] || [];
+  document.getElementById('panel').innerHTML = `
+    <h2>Asumsi / Bahaya</h2>
+    <p class="desc">Pilih kategori dulu, lalu tambah/edit/hapus item untuk kategori itu.</p>
+    <div style="display:flex;align-items:center;justify-content:space-between;max-width:420px;margin-bottom:14px">
+      <select id="asumsiKategoriSelect" onchange="asumsiKategori=this.value;renderAsumsiTab()" style="max-width:260px">
+        ${(RA_CONFIG.kategoriList || []).map(function(k) {
+          return '<option value="' + esc(k) + '" ' + (k === asumsiKategori ? 'selected' : '') + '>' + esc(k) + '</option>';
+        }).join('')}
+      </select>
+      <span class="count-badge">${items.length} item</span>
+    </div>
+    <div id="asumsiList" style="max-width:560px">
+      ${items.map(function(a, i) {
+        return '<div class="list-row"><input value="' + esc(a) + '" data-idx="' + i + '" onchange="onAsumsiEdit(this)"/>' +
+          '<button class="icon-btn" onclick="removeAsumsi(' + i + ')">✕</button></div>';
+      }).join('')}
+    </div>
+    <div class="add-row" style="max-width:560px">
+      <input type="text" id="newAsumsiInput" placeholder="Tambah asumsi baru untuk ${esc(asumsiKategori)}">
+      <button class="btn-secondary" onclick="addAsumsi()">+ Tambah</button>
+    </div>
+    <div class="section-divider">
+      <button class="btn-primary" id="btnSaveAsumsi" onclick="saveAsumsi()">Simpan Kategori Ini</button>
+    </div>
+  `;
+}
+
+function onAsumsiEdit(input) {
+  const i = Number(input.dataset.idx);
+  RA_CONFIG.asumsiByKategori[asumsiKategori][i] = input.value;
+}
+
+function addAsumsi() {
+  const input = document.getElementById('newAsumsiInput');
+  const val = input.value.trim();
+  if (!val) return;
+  if (!RA_CONFIG.asumsiByKategori[asumsiKategori]) RA_CONFIG.asumsiByKategori[asumsiKategori] = [];
+  RA_CONFIG.asumsiByKategori[asumsiKategori].push(val);
+  renderAsumsiTab();
+}
+
+function removeAsumsi(i) {
+  RA_CONFIG.asumsiByKategori[asumsiKategori].splice(i, 1);
+  renderAsumsiTab();
+}
+
+function saveAsumsi() {
+  const btn = document.getElementById('btnSaveAsumsi');
+  withBusyBtn(btn, function(done) {
+    google.script.run
+      .withSuccessHandler(function(res) {
+        done();
+        if (res.success) toast('Tersimpan.');
+        else toast(res.error || 'Gagal menyimpan.', true);
+      })
+      .withFailureHandler(function(err) { done(); toast(String(err), true); })
+      .saveRaAsumsiForKategori(asumsiKategori, RA_CONFIG.asumsiByKategori[asumsiKategori] || []);
+  });
+}
+
+// ── ROUTER ─────────────────────────────────────────────────
+function renderPanel() {
+  if (active === 'info') renderInfoTab();
+  else if (active === 'kategori') renderKategoriTab();
+  else if (active === 'labels') renderLabelsTab();
+  else if (active === 'asumsi') renderAsumsiTab();
+}
+
+function esc(str) {
+  if (str == null) return '';
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+renderNav();
+renderPanel();
+</script>
+
+<? } ?>
+</body>
+</html>
