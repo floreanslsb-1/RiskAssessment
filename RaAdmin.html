@@ -41,6 +41,7 @@
   .icon-btn:hover { color: var(--red); }
   .list-row { display: flex; align-items: center; gap: 8px; border: 1px solid var(--gray-300); border-radius: var(--radius); padding: 7px 10px; margin-bottom: 6px; background: var(--white); }
   .list-row input { border: none; flex: 1; padding: 2px; background: transparent; }
+  .row-num-badge { width: 22px; height: 22px; border-radius: 50%; background: var(--gray-100); color: var(--gray-500); font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
   .add-row { display: flex; gap: 8px; margin-top: 10px; }
   .add-row input { flex: 1; }
   .grid-row { display: flex; gap: 10px; align-items: center; margin-bottom: 6px; }
@@ -160,7 +161,8 @@ function renderKategoriTab() {
     <p class="desc">Menghapus kategori juga akan menghapus Label RS dan Asumsi/Bahaya milik kategori itu. Hati-hati.</p>
     <div id="kategoriList">
       ${list.map(function(k, i) {
-        return '<div class="list-row"><input value="' + esc(k) + '" data-idx="' + i + '" onchange="onKategoriEdit(this)"/>' +
+        return '<div class="list-row"><span class="row-num-badge">' + (i + 1) + '</span>' +
+          '<input value="' + esc(k) + '" data-idx="' + i + '" onchange="onKategoriEdit(this)"/>' +
           '<button class="icon-btn" onclick="removeKategori(' + i + ')">✕</button></div>';
       }).join('')}
     </div>
@@ -286,7 +288,8 @@ function renderAsumsiTab() {
     </div>
     <div id="asumsiList" style="max-width:560px">
       ${items.map(function(a, i) {
-        return '<div class="list-row"><input value="' + esc(a) + '" data-idx="' + i + '" onchange="onAsumsiEdit(this)"/>' +
+        return '<div class="list-row"><span class="row-num-badge">' + (i + 1) + '</span>' +
+          '<input value="' + esc(a) + '" data-idx="' + i + '" onchange="onAsumsiEdit(this)"/>' +
           '<button class="icon-btn" onclick="removeAsumsi(' + i + ')">✕</button></div>';
       }).join('')}
     </div>
