@@ -199,11 +199,30 @@ function saveRaAsumsiForKategori(kategori, items) {
   } finally { lock.releaseLock(); }
 }
 
-function saveRaAdminEmails(emailsCsv) {
+function getRaAdminEmailsList_() {
+  try {
+    const ss = SpreadsheetApp.openById(CONFIG.SHEET_ID);
+    const nr = ss.getRangeByName('RA_ADMIN_EMAILS');
+    if (!nr) return [];
+    return String(nr.getValue() || '').split(',').map(function(e) { return e.trim(); }).filter(Boolean);
+  } catch (e) { return []; }
+}
+
+function saveRaAdminEmails(emailsList) {
   if (!isRaAdmin_()) return { success: false, error: 'Akses ditolak.' };
+  const cleaned = (emailsList || [])
+    .map(function(e) { return String(e).trim().toLowerCase(); })
+    .filter(Boolean);
+  if (cleaned.length === 0) {
+    return { success: false, error: 'Minimal harus ada 1 admin.' };
+  }
+  const me = Session.getActiveUser().getEmail().toLowerCase();
+  if (cleaned.indexOf(me) === -1) {
+    return { success: false, error: 'Kamu tidak bisa menghapus emailmu sendiri dari daftar admin.' };
+  }
   const ss = SpreadsheetApp.openById(CONFIG.SHEET_ID);
   const nr = ss.getRangeByName('RA_ADMIN_EMAILS');
   if (!nr) return { success: false, error: 'Named range RA_ADMIN_EMAILS belum ada.' };
-  nr.setValue(emailsCsv);
+  nr.setValue(cleaned.join(','));
   return { success: true };
 }
