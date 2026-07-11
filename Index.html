@@ -80,10 +80,24 @@ button { cursor: pointer; }
 }
 .header-inner {
   display: grid;
-  grid-template-columns: auto 1fr auto;
+  grid-template-columns: auto 1fr auto auto;
   align-items: stretch;
   border: 1px solid #E5E7EB;
 }
+.header-gear {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 14px;
+  border-left: 1px solid #E5E7EB;
+}
+.header-gear a {
+  display: flex; align-items: center; justify-content: center;
+  width: 30px; height: 30px; border-radius: 6px;
+  color: #9CA3AF; text-decoration: none; font-size: 16px;
+  transition: background 150ms ease, color 150ms ease;
+}
+.header-gear a:hover { background: #F3F4F6; color: #C8102E; }
 .header-logo {
   padding: 12px 16px;
   display: flex;
@@ -476,14 +490,13 @@ button { cursor: pointer; }
         <span class="form-title">Formulir Kajian Risiko / Risk Assessment</span>
         <span class="dept-line">Dept: <strong id="deptDisplay">—</strong></span>
       </div>
-      <div class="header-meta" style="position:relative">
-        <a id="adminGearLink" href="#" target="_blank" title="Admin Panel"
-           onmouseover="this.style.background='#F3F4F6';this.style.color='#C8102E'"
-           onmouseout="this.style.background='transparent';this.style.color='#9CA3AF'"
-           style="display:flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:6px;color:#9CA3AF;text-decoration:none;font-size:15px;position:absolute;top:8px;right:8px;transition:background 150ms ease,color 150ms ease">⚙</a>
+      <div class="header-meta">
         <div class="meta-row"><span class="label">No. Dokumen</span><span class="value"><?= raConfig.docNo ?></span></div>
         <div class="meta-row"><span class="label">Revisi</span><span class="value"><?= raConfig.docRev ?></span></div>
         <div class="meta-row"><span class="label">Tgl. Berlaku</span><span class="value"><?= raConfig.effectiveDateFormatted ?></span></div>
+      </div>
+      <div class="header-gear">
+        <a id="adminGearLink" href="#" target="_blank" title="Admin Panel">⚙</a>
       </div>
     </div>
   </div>
