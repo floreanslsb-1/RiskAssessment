@@ -78,6 +78,7 @@
 
 <script>
 const RA_CONFIG = <?!= JSON.stringify(raConfig) ?>;
+const RA_ADMIN_EMAILS = <?!= JSON.stringify(adminEmails) ?>;
 const LEVELS_ROP = [10, 8, 6, 4, 1];
 const LEVELS_RS  = [100, 40, 21, 8, 2];
 
@@ -90,6 +91,7 @@ const tabs = [
   { id: 'kategori', label: 'Kategori Risiko' },
   { id: 'labels',  label: 'Label ROP & RS' },
   { id: 'asumsi',  label: 'Asumsi / Bahaya' },
+  { id: 'admin',   label: 'Kelola Admin' },
 ];
 
 function renderNav() {
@@ -336,12 +338,72 @@ function saveAsumsi() {
   });
 }
 
+// ── TAB: KELOLA ADMIN ──────────────────────────────────────
+function renderAdminTab() {
+  const list = RA_ADMIN_EMAILS || [];
+  document.getElementById('panel').innerHTML = `
+    <h2>Kelola Admin</h2>
+    <p class="desc">Email yang terdaftar bisa membuka Admin Panel ini. Minimal harus ada 1 admin, dan kamu tidak bisa menghapus emailmu sendiri.</p>
+    <div id="adminEmailList" style="max-width:420px">
+      ${list.map(function(e, i) {
+        return '<div class="list-row"><span class="row-num-badge">' + (i + 1) + '</span>' +
+          '<input value="' + esc(e) + '" data-idx="' + i + '" onchange="onAdminEmailEdit(this)"/>' +
+          '<button class="icon-btn" onclick="removeAdminEmail(' + i + ')">✕</button></div>';
+      }).join('')}
+    </div>
+    <div class="add-row" style="max-width:420px">
+      <input type="text" id="newAdminEmailInput" placeholder="email@wingscorp.com">
+      <button class="btn-secondary" onclick="addAdminEmail()">+ Tambah</button>
+    </div>
+    <div class="section-divider">
+      <button class="btn-primary" id="btnSaveAdmin" onclick="saveAdminEmails()">Simpan</button>
+    </div>
+  `;
+}
+
+function onAdminEmailEdit(input) {
+  const i = Number(input.dataset.idx);
+  RA_ADMIN_EMAILS[i] = input.value;
+}
+
+function addAdminEmail() {
+  const input = document.getElementById('newAdminEmailInput');
+  const val = input.value.trim();
+  if (!val) return;
+  if (RA_ADMIN_EMAILS.map(function(e) { return e.toLowerCase(); }).includes(val.toLowerCase())) {
+    toast('Email sudah ada di daftar.', true); return;
+  }
+  RA_ADMIN_EMAILS.push(val);
+  renderAdminTab();
+}
+
+function removeAdminEmail(i) {
+  if (RA_ADMIN_EMAILS.length <= 1) { toast('Minimal harus ada 1 admin.', true); return; }
+  RA_ADMIN_EMAILS.splice(i, 1);
+  renderAdminTab();
+}
+
+function saveAdminEmails() {
+  const btn = document.getElementById('btnSaveAdmin');
+  withBusyBtn(btn, function(done) {
+    google.script.run
+      .withSuccessHandler(function(res) {
+        done();
+        if (res.success) toast('Tersimpan.');
+        else toast(res.error || 'Gagal menyimpan.', true);
+      })
+      .withFailureHandler(function(err) { done(); toast(String(err), true); })
+      .saveRaAdminEmails(RA_ADMIN_EMAILS);
+  });
+}
+
 // ── ROUTER ─────────────────────────────────────────────────
 function renderPanel() {
   if (active === 'info') renderInfoTab();
   else if (active === 'kategori') renderKategoriTab();
   else if (active === 'labels') renderLabelsTab();
   else if (active === 'asumsi') renderAsumsiTab();
+  else if (active === 'admin') renderAdminTab();
 }
 
 function esc(str) {
