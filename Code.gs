@@ -19,7 +19,22 @@ const CONFIG = {
 };
 
 function doGet(e) {
-  const params    = e && e.parameter ? e.parameter : {};
+  const params = e && e.parameter ? e.parameter : {};
+
+  if (params.admin === '1') {
+    if (!isRaAdmin_()) {
+      return HtmlService.createHtmlOutput(
+        '<p style="font-family:sans-serif;padding:40px;color:#6B7280">Akses ditolak. Halaman ini khusus admin RA app.</p>'
+      );
+    }
+    const adminTemplate = HtmlService.createTemplateFromFile('RaAdmin');
+    adminTemplate.raConfig = getRaConfig();
+    adminTemplate.isAdmin  = true;
+    return adminTemplate.evaluate()
+      .setTitle('Admin Panel — Kajian Risiko')
+      .addMetaTag('viewport', 'width=device-width, initial-scale=1');
+  }
+
   const raId      = params.raId      || '';
   const returnUrl = params.returnUrl || CONFIG.MAIN_APP_URL;
   const raConfig  = getRaConfig();
@@ -80,6 +95,7 @@ function loadRaData(raId) {
     const col      = getRaColumnMap();
     const data     = sheet.getDataRange().getValues();
     const baseRaId = raId.replace(/_\d+$/, '');
+    Logger.log('DEBUG loadRaData: raId=' + raId + ' baseRaId=' + baseRaId + ' totalDataRows=' + data.length + ' col.RA_RA_ID=' + col['RA_RA_ID'] + ' dept=' + dept);
 
     const matchedRows = [];
     for (let i = 1; i < data.length; i++) {
@@ -97,6 +113,7 @@ function loadRaData(raId) {
       const controls = row[col['RA_RISK_CONTROLS'] - 1];
       return {
         raId:           row[col['RA_RA_ID']          - 1],
+        savedAt:        row[col['RA_SAVED_AT']       - 1],
         status:         row[col['RA_STATUS']         - 1],
         workingArea:    row[col['RA_WORKING_AREA']   - 1],
         jobTitle:       row[col['RA_JOB_TITLE']      - 1],
@@ -128,6 +145,7 @@ function loadRaData(raId) {
 
     return { success: true, dept: dept, allRisks: allRisks };
   } catch(err) {
+    Logger.log('DEBUG loadRaData ERROR: ' + err.message + ' | stack: ' + err.stack);
     return { success: false, error: err.message, data: null };
   }
 }
@@ -155,6 +173,7 @@ function autoSaveRa(payload) {
 
     const col       = getRaColumnMap();
     const sheetData = sheet.getDataRange().getValues(); // FIX #7: read once
+    Logger.log('DEBUG autoSaveRa: baseRaId=' + baseRaId + ' allRisksCount=' + allRisks.length + ' col.RA_RA_ID=' + col['RA_RA_ID']);
 
     allRisks.forEach(function(r, i) {
       const rowRaId  = baseRaId + (i === 0 ? '' : '_' + i);
@@ -179,6 +198,7 @@ function autoSaveRa(payload) {
     updateMainSheetKajianStatus_(baseRaId, 'DRAFT');
     return { success: true, savedAt: now.toISOString(), raId: baseRaId };
   } catch(err) {
+    Logger.log('DEBUG autoSaveRa ERROR: ' + err.message + ' | stack: ' + err.stack);
     return { success: false, error: err.message };
   } finally {
     lock.releaseLock();
