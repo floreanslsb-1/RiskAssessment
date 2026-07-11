@@ -476,7 +476,9 @@ button { cursor: pointer; }
         <span class="form-title">Formulir Kajian Risiko / Risk Assessment</span>
         <span class="dept-line">Dept: <strong id="deptDisplay">—</strong></span>
       </div>
-      <div class="header-meta">
+      <div class="header-meta" style="position:relative">
+        <a id="adminGearLink" href="#" target="_blank" title="Admin Panel"
+           style="position:absolute;top:-2px;right:-4px;color:#D1D5DB;text-decoration:none;font-size:14px">⚙</a>
         <div class="meta-row"><span class="label">No. Dokumen</span><span class="value"><?= raConfig.docNo ?></span></div>
         <div class="meta-row"><span class="label">Revisi</span><span class="value"><?= raConfig.docRev ?></span></div>
         <div class="meta-row"><span class="label">Tgl. Berlaku</span><span class="value"><?= raConfig.effectiveDateFormatted ?></span></div>
@@ -607,6 +609,9 @@ window.onload = function() {
 
   if (dept) document.getElementById('deptDisplay').textContent = dept;
 
+  const gearLink = document.getElementById('adminGearLink');
+  if (gearLink) gearLink.href = window.location.origin + window.location.pathname + '?admin=1';
+
   document.getElementById('addRowBtn').addEventListener('click', function() {
     addRiskCard();
     selectedCell = null;
@@ -627,6 +632,11 @@ function onDataLoaded(result) {
   }
   if (result.allRisks && result.allRisks.length > 0) {
     result.allRisks.forEach(function(r) { loadExistingData(r); });
+    const savedAtRaw = result.allRisks[0].savedAt;
+    if (savedAtRaw) {
+      const d = new Date(savedAtRaw);
+      if (!isNaN(d)) setSaveStatus('saved', 'Tersimpan ' + formatDate(d) + ' ' + formatTime(d));
+    }
   } else if (result.data) {
     loadExistingData(result.data);
   } else {
@@ -721,7 +731,7 @@ function doSave() {
     .withSuccessHandler(function(res) {
       if (res.success) {
         if (res.raId) raId = res.raId;
-        setSaveStatus('saved', 'Tersimpan ' + formatTime(new Date()));
+        setSaveStatus('saved', 'Tersimpan ' + formatDate(new Date()) + ' ' + formatTime(new Date()));
       } else {
         setSaveStatus('error', 'Gagal simpan');
       }
