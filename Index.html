@@ -1885,6 +1885,29 @@ const TOUR_STEPS = [
 let _tourStepIdx = 0;
 let _tourHighlightEl = null;
 
+function _getTourSpotlightEl() {
+  let el = document.getElementById('tourSpotlight');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'tourSpotlight';
+    el.className = 'tour-spotlight';
+    document.body.appendChild(el);
+  }
+  return el;
+}
+
+function _positionTourSpotlight() {
+  const spotlight = _getTourSpotlightEl();
+  if (!_tourHighlightEl) { spotlight.classList.remove('active'); return; }
+  const r = _tourHighlightEl.getBoundingClientRect();
+  const pad = 3;
+  spotlight.style.left   = (r.left - pad) + 'px';
+  spotlight.style.top    = (r.top - pad) + 'px';
+  spotlight.style.width  = (r.width + pad * 2) + 'px';
+  spotlight.style.height = (r.height + pad * 2) + 'px';
+  spotlight.classList.add('active');
+}
+
 function _getTourOverlayEl() {
   let el = document.getElementById('tourOverlay');
   if (!el) {
@@ -1927,11 +1950,13 @@ function startTour() {
 }
 
 function endTour() {
-  const overlay = document.getElementById('tourOverlay');
-  const card    = document.getElementById('tourCard');
-  if (overlay) overlay.classList.remove('active');
-  if (card)    { card.classList.remove('active'); card.style.visibility = 'hidden'; }
-  if (_tourHighlightEl) { _tourHighlightEl.classList.remove('tour-highlight'); _tourHighlightEl = null; }
+  const overlay   = document.getElementById('tourOverlay');
+  const card      = document.getElementById('tourCard');
+  const spotlight = document.getElementById('tourSpotlight');
+  if (overlay)   overlay.classList.remove('active');
+  if (card)      { card.classList.remove('active'); card.style.visibility = 'hidden'; }
+  if (spotlight) spotlight.classList.remove('active');
+  _tourHighlightEl = null;
 }
 
 function tourNext() {
@@ -1960,10 +1985,11 @@ function _renderTourStep() {
     const el = document.querySelector(step.target);
     if (el) {
       _tourHighlightEl = el;
-      el.classList.add('tour-highlight');
       el.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
     }
   } else {
+    _tourHighlightEl = null;
+    document.getElementById('tourSpotlight').classList.remove('active');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
   _trackTourCardPosition();
@@ -2018,6 +2044,7 @@ function _trackTourCardPosition() {
   const duration = 500;
   function frame(now) {
     _positionTourCard();
+    _positionTourSpotlight();
     if (now - start < duration) requestAnimationFrame(frame);
   }
   requestAnimationFrame(frame);
