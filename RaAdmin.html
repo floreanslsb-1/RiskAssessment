@@ -220,7 +220,7 @@ function saveKategori() {
     google.script.run
       .withSuccessHandler(function(res) {
         done();
-        if (res.success) toast('Tersimpan.');
+        if (res.success) { toast('Tersimpan.'); renderKategoriTab(); }
         else toast(res.error || 'Gagal menyimpan.', true);
       })
       .withFailureHandler(function(err) { done(); toast(String(err), true); })
@@ -342,7 +342,6 @@ function saveAsumsi() {
       if (!RA_CONFIG.asumsiByKategori[asumsiKategori]) RA_CONFIG.asumsiByKategori[asumsiKategori] = [];
       if (!RA_CONFIG.asumsiByKategori[asumsiKategori].includes(pendingVal)) {
         RA_CONFIG.asumsiByKategori[asumsiKategori].push(pendingVal);
-        pendingInput.value = '';
       }
     }
   }
@@ -351,7 +350,7 @@ function saveAsumsi() {
     google.script.run
       .withSuccessHandler(function(res) {
         done();
-        if (res.success) toast('Tersimpan.');
+        if (res.success) { toast('Tersimpan.'); renderAsumsiTab(); }
         else toast(res.error || 'Gagal menyimpan.', true);
       })
       .withFailureHandler(function(err) { done(); toast(String(err), true); })
