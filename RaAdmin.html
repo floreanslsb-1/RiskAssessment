@@ -205,6 +205,16 @@ function removeKategori(i) {
 }
 
 function saveKategori() {
+  const pendingInput = document.getElementById('newKategoriInput');
+  if (pendingInput) {
+    const pendingVal = pendingInput.value.trim();
+    if (pendingVal && !RA_CONFIG.kategoriList.includes(pendingVal)) {
+      RA_CONFIG.kategoriList.push(pendingVal);
+      if (!RA_CONFIG.rsLabelsByKategori[pendingVal]) RA_CONFIG.rsLabelsByKategori[pendingVal] = {};
+      if (!RA_CONFIG.asumsiByKategori[pendingVal]) RA_CONFIG.asumsiByKategori[pendingVal] = [];
+      pendingInput.value = '';
+    }
+  }
   const btn = document.getElementById('btnSaveKategori');
   withBusyBtn(btn, function(done) {
     google.script.run
@@ -325,6 +335,17 @@ function removeAsumsi(i) {
 }
 
 function saveAsumsi() {
+  const pendingInput = document.getElementById('newAsumsiInput');
+  if (pendingInput) {
+    const pendingVal = pendingInput.value.trim();
+    if (pendingVal) {
+      if (!RA_CONFIG.asumsiByKategori[asumsiKategori]) RA_CONFIG.asumsiByKategori[asumsiKategori] = [];
+      if (!RA_CONFIG.asumsiByKategori[asumsiKategori].includes(pendingVal)) {
+        RA_CONFIG.asumsiByKategori[asumsiKategori].push(pendingVal);
+        pendingInput.value = '';
+      }
+    }
+  }
   const btn = document.getElementById('btnSaveAsumsi');
   withBusyBtn(btn, function(done) {
     google.script.run
@@ -384,12 +405,22 @@ function removeAdminEmail(i) {
 }
 
 function saveAdminEmails() {
+  // Jaga-jaga: kalau ada email yang sudah diketik tapi lupa/belum diklik "+ Tambah",
+  // commit dulu ke array sebelum kirim, supaya "Simpan" tidak diam-diam mengabaikannya.
+  const pendingInput = document.getElementById('newAdminEmailInput');
+  if (pendingInput) {
+    const pendingVal = pendingInput.value.trim();
+    if (pendingVal && !RA_ADMIN_EMAILS.map(function(e){return e.toLowerCase();}).includes(pendingVal.toLowerCase())) {
+      RA_ADMIN_EMAILS.push(pendingVal);
+      pendingInput.value = '';
+    }
+  }
   const btn = document.getElementById('btnSaveAdmin');
   withBusyBtn(btn, function(done) {
     google.script.run
       .withSuccessHandler(function(res) {
         done();
-        if (res.success) toast('Tersimpan.');
+        if (res.success) { toast('Tersimpan.'); renderAdminTab(); }
         else toast(res.error || 'Gagal menyimpan.', true);
       })
       .withFailureHandler(function(err) { done(); toast(String(err), true); })
