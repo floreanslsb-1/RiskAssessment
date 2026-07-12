@@ -45,15 +45,18 @@
   height: 30px;
   min-height: 30px;
 }
-.chip-label {
+.chip-cat {
   font-size: 10px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: .04em;
-  opacity: 0.75;
-  margin-right: 3px;
   white-space: nowrap;
+  color: var(--gray-500);
+  flex-shrink: 0;
 }
+.chip-cat-eng   { color: #1D4ED8; }
+.chip-cat-admin { color: #92400E; }
+.chip-cat-ppe   { color: #065F46; }
 
 /* ── RESET ─────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -309,26 +312,22 @@ button { cursor: pointer; }
 .t-score.low    { color: var(--low);    background: var(--low-bg); }
 .t-score.neutral{ color: var(--gray-500); background: var(--gray-100); }
 
-.ctrl-chips { display: flex; flex-direction: column; gap: 5px; min-width: 180px; }
+.ctrl-chips { display: flex; flex-direction: column; gap: 6px; min-width: 180px; }
 .ctrl-chip {
-  display: flex; flex-direction: column; align-items: flex-start; gap: 2px;
-  padding: 4px 7px; border-radius: 3px; font-size: 11px;
-  background: var(--gray-100); color: var(--gray-700);
+  display: flex; flex-direction: column; gap: 4px;
+  padding: 7px 9px; border-radius: 5px; font-size: 11px;
+  background: var(--white); border: 1px solid #E5E7EB; color: var(--gray-700);
 }
-.ctrl-chip .chip-top { display: flex; align-items: center; gap: 5px; }
-.ctrl-chip .chip-type { font-weight: 700; color: var(--gray-500); min-width: 20px; }
-.ctrl-chip .chip-act  { color: var(--gray-700); }
-.ctrl-chip-eng   { background: #DBEAFE; color: #1D4ED8; }
-.ctrl-chip-admin { background: #FEF3C7; color: #92400E; }
-.ctrl-chip-ppe   { background: #D1FAE5; color: #065F46; }
-.ctrl-chip-other { background: var(--gray-100); color: var(--gray-500); }
+.chip-row-main { display: flex; align-items: baseline; gap: 6px; }
+.chip-act { color: var(--gray-700); }
 
-.chip-meta { display: flex; align-items: center; gap: 6px; font-size: 10px; opacity: .9; }
-.chip-status { padding: 1px 6px; border-radius: 999px; font-weight: 700; text-transform: uppercase; letter-spacing: .03em; }
-.chip-status-done     { background: #D1FAE5; color: #065F46; }
-.chip-status-progress { background: #FEF3C7; color: #92400E; }
-.chip-status-empty    { background: #E5E7EB; color: #6B7280; font-style: italic; }
-.chip-due { color: inherit; opacity: .85; white-space: nowrap; }
+.chip-row-meta { display: flex; align-items: center; gap: 5px; font-size: 10px; color: var(--gray-500); }
+.chip-status-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; background: var(--gray-300); }
+.chip-status-dot.status-done     { background: var(--low); }
+.chip-status-dot.status-progress { background: var(--medium); }
+.chip-status-dot.status-empty    { background: var(--gray-300); }
+.chip-sep { color: var(--gray-300); }
+.chip-icon-cal { width: 11px; height: 11px; flex-shrink: 0; opacity: .7; }
 
 .edit-ctrl-btn {
   display: flex; align-items: center; gap: 5px;
@@ -1140,7 +1139,10 @@ function buildTableRow(risk, idx) {
 
     <td class="group-sep" style="min-width:220px">
       <div class="ctrl-chips" id="tbl_chips_${risk.id}">${buildCtrlChips(risk.riskControls || [])}</div>
-      <button class="edit-ctrl-btn" onclick="openCtrlModal('${risk.id}')">✏ Edit Pengendalian</button>
+      <button class="edit-ctrl-btn" onclick="openCtrlModal('${risk.id}')">
+        <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+        Edit Pengendalian
+      </button>
     </td>
 
     <td id="tbl_ropAfter_${risk.id}">
@@ -1241,30 +1243,33 @@ function buildCtrlChips(controls) {
   if (!controls.length) return '<span style="color:#9CA3AF;font-size:11px">Belum ada</span>';
   return controls.map(c => {
     const kat = (c.kategori || '').toLowerCase();
-    let cls = 'ctrl-chip-other', label = '';
-    if (kat === 'engineering control')         { cls = 'ctrl-chip-eng';   label = 'ENG'; }
-    else if (kat === 'administration control') { cls = 'ctrl-chip-admin'; label = 'ADM'; }
-    else if (kat === 'ppe / apd')              { cls = 'ctrl-chip-ppe';   label = 'PPE'; }
+    let catCls = '', label = '';
+    if (kat === 'engineering control')         { catCls = 'chip-cat-eng';   label = 'ENG'; }
+    else if (kat === 'administration control') { catCls = 'chip-cat-admin'; label = 'ADM'; }
+    else if (kat === 'ppe / apd')              { catCls = 'chip-cat-ppe';   label = 'PPE'; }
     const act = c.controlActivity
       ? (c.controlActivity.length > 30 ? c.controlActivity.slice(0, 30) + '…' : c.controlActivity)
       : '—';
-    const labelHtml = label ? `<span class="chip-label">${label}</span>` : '';
+    const catHtml = label ? `<span class="chip-cat ${catCls}">${label}</span>` : '';
 
     const needsPIC = !noExtraFields(c.strategi, c.kategori);
     let metaHtml = '';
     if (needsPIC) {
-      const statusCls = c.status === 'Done' ? 'chip-status-done'
-        : c.status === 'On Progress' ? 'chip-status-progress'
-        : 'chip-status-empty';
+      const statusDotCls = c.status === 'Done' ? 'status-done'
+        : c.status === 'On Progress' ? 'status-progress'
+        : 'status-empty';
       const statusTxt = c.status || 'Belum diisi';
-      metaHtml = `<div class="chip-meta">
-        <span class="chip-status ${statusCls}">${esc(statusTxt)}</span>
-        <span class="chip-due">📅 ${esc(formatDueDateShort(c.dueDate))}</span>
+      metaHtml = `<div class="chip-row-meta">
+        <span class="chip-status-dot ${statusDotCls}"></span>
+        <span>${esc(statusTxt)}</span>
+        <span class="chip-sep">·</span>
+        <svg class="chip-icon-cal" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        <span>${esc(formatDueDateShort(c.dueDate))}</span>
       </div>`;
     }
 
-    return `<div class="ctrl-chip ${cls}">
-      <div class="chip-top">${labelHtml}<span class="chip-act">${esc(act)}</span></div>
+    return `<div class="ctrl-chip">
+      <div class="chip-row-main">${catHtml}<span class="chip-act">${esc(act)}</span></div>
       ${metaHtml}
     </div>`;
   }).join('');
