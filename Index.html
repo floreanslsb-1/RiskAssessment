@@ -113,6 +113,22 @@ button { cursor: pointer; }
 }
 .tour-overlay.active { opacity: 1; }
 
+@keyframes tourPulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(200,16,46,.6); }
+  50%      { box-shadow: 0 0 0 8px rgba(200,16,46,0); }
+}
+.tour-spotlight {
+  position: fixed;
+  pointer-events: none;
+  border: 3px solid var(--red);
+  border-radius: 4px;
+  background: rgba(200,16,46,.10);
+  animation: tourPulse 1.6s infinite;
+  z-index: 950;
+  display: none;
+}
+.tour-spotlight.active { display: block; }
+
 .tour-card {
   position: fixed; top: 0; left: 0;
   width: 340px; max-width: calc(100vw - 48px);
