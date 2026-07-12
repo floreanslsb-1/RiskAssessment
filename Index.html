@@ -654,6 +654,8 @@ window.onload = function() {
     .loadRaData(raId);
 };
 
+const DEFAULT_EMPTY_ROWS = 3;
+
 function onDataLoaded(result) {
   if (result.dept) {
     dept = result.dept;
@@ -669,7 +671,7 @@ function onDataLoaded(result) {
   } else if (result.data) {
     loadExistingData(result.data);
   } else {
-    addRiskCard();
+    for (let i = 0; i < DEFAULT_EMPTY_ROWS; i++) addRiskCard();
     renderTable();
   }
   checkFupStatusForDownload();
@@ -691,7 +693,7 @@ function checkFupStatusForDownload() {
 
 function onLoadError(err) {
   showToast('Gagal memuat data: ' + err, 'error');
-  addRiskCard();
+  for (let i = 0; i < DEFAULT_EMPTY_ROWS; i++) addRiskCard();
   renderTable();
 }
 
