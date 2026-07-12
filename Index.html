@@ -20,6 +20,8 @@
   --gray-100:   #F0F2F5;
   --gray-50:    #F8F9FB;
   --white:      #FFFFFF;
+  --veryhigh:   #FFFFFF;
+  --veryhigh-bg:#6B0F1A;
   --high:       #C8102E;
   --high-bg:    #FEE2E6;
   --medium:     #D97706;
@@ -160,10 +162,45 @@ button { cursor: pointer; }
 .status-substitute  { background: #D1FAE5; color: #065F46; }
 .status-empty       { background: #E5E7EB; color: #6B7280; font-style: italic; }
 
+/* ── FIELD HELP TOOLTIP (ikon ⓘ di header kolom) ─── */
+.th-info-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 4px;
+  color: var(--gray-400);
+  cursor: help;
+  vertical-align: middle;
+  flex-shrink: 0;
+  transition: color var(--transition);
+}
+.th-info-icon:hover,
+.th-info-icon.tt-active { color: var(--red); }
+.th-info-icon svg { display: block; }
+
+.th-tooltip-popup {
+  position: fixed;
+  display: none;
+  max-width: 250px;
+  background: var(--gray-900);
+  color: white;
+  font-size: 11px;
+  font-weight: 400;
+  line-height: 1.5;
+  padding: 9px 12px;
+  border-radius: 6px;
+  box-shadow: var(--shadow-lg);
+  z-index: 3000;
+  text-transform: none;
+  letter-spacing: normal;
+  pointer-events: none;
+}
+
 /* ── SCORE DISPLAY ─────────────────────────────── */
-.level-high   { color: var(--high); }
-.level-medium { color: var(--medium); }
-.level-low    { color: var(--low); }
+.level-veryhigh { color: var(--veryhigh-bg); }
+.level-high     { color: var(--high); }
+.level-medium   { color: var(--medium); }
+.level-low      { color: var(--low); }
 
 /* ── TABLE VIEW ─────────────────────────────────── */
 .table-outer {
@@ -307,10 +344,15 @@ button { cursor: pointer; }
   padding: 4px 10px;
   border-radius: 3px;
 }
-.t-score.high   { color: var(--high);   background: var(--high-bg); }
-.t-score.medium { color: var(--medium); background: var(--medium-bg); }
-.t-score.low    { color: var(--low);    background: var(--low-bg); }
-.t-score.neutral{ color: var(--gray-500); background: var(--gray-100); }
+@keyframes dangerGlow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(107, 15, 26, 0.5); }
+  50%      { box-shadow: 0 0 0 4px rgba(107, 15, 26, 0); }
+}
+.t-score.veryhigh { color: var(--veryhigh); background: var(--veryhigh-bg); font-weight: 800; animation: dangerGlow 2s infinite; }
+.t-score.high     { color: var(--high);   background: var(--high-bg); }
+.t-score.medium   { color: var(--medium); background: var(--medium-bg); }
+.t-score.low      { color: var(--low);    background: var(--low-bg); }
+.t-score.neutral  { color: var(--gray-500); background: var(--gray-100); }
 
 .ctrl-chips { display: flex; flex-direction: column; gap: 6px; min-width: 180px; }
 .ctrl-chip {
@@ -540,28 +582,28 @@ button { cursor: pointer; }
           </tr>
           <tr class="col-header-row" id="colHeaderRow">
             <th style="--col-w:100px" class="group-sep">Status</th>
-            <th style="--col-w:130px">Working Area</th>
-            <th style="--col-w:120px">Job Title</th>
-            <th style="--col-w:130px">Workstation</th>
-            <th style="--col-w:130px">Aktivitas</th>
-            <th style="--col-w:70px" class="group-sep">R/NR</th>
-            <th style="--col-w:110px">Kategori</th>
-            <th style="--col-w:200px">Asumsi/Bahaya</th>
-            <th style="--col-w:150px">Dampak</th>
-            <th style="--col-w:70px">Jml Terpapar</th>
-            <th style="--col-w:52px">Ibu Hamil</th>
-            <th style="--col-w:52px">Ibu Menyusui</th>
-            <th style="--col-w:52px">Peny. Khusus</th>
-            <th style="--col-w:52px" class="group-sep">Disabilitas</th>
+            <th style="--col-w:130px">Working Area<span class="th-info-icon" data-help="workingArea" onmouseenter="showFieldTooltip(this)" onmouseleave="hideFieldTooltip(this)" onclick="toggleFieldTooltip(event,this)"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></span></th>
+            <th style="--col-w:120px">Job Title<span class="th-info-icon" data-help="jobTitle" onmouseenter="showFieldTooltip(this)" onmouseleave="hideFieldTooltip(this)" onclick="toggleFieldTooltip(event,this)"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></span></th>
+            <th style="--col-w:130px">Workstation<span class="th-info-icon" data-help="workstation" onmouseenter="showFieldTooltip(this)" onmouseleave="hideFieldTooltip(this)" onclick="toggleFieldTooltip(event,this)"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></span></th>
+            <th style="--col-w:130px">Aktivitas<span class="th-info-icon" data-help="aktivitas" onmouseenter="showFieldTooltip(this)" onmouseleave="hideFieldTooltip(this)" onclick="toggleFieldTooltip(event,this)"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></span></th>
+            <th style="--col-w:70px" class="group-sep">R/NR<span class="th-info-icon" data-help="rutin" onmouseenter="showFieldTooltip(this)" onmouseleave="hideFieldTooltip(this)" onclick="toggleFieldTooltip(event,this)"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></span></th>
+            <th style="--col-w:110px">Kategori<span class="th-info-icon" data-help="kategori" onmouseenter="showFieldTooltip(this)" onmouseleave="hideFieldTooltip(this)" onclick="toggleFieldTooltip(event,this)"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></span></th>
+            <th style="--col-w:200px">Asumsi/Bahaya<span class="th-info-icon" data-help="asumsiBahaya" onmouseenter="showFieldTooltip(this)" onmouseleave="hideFieldTooltip(this)" onclick="toggleFieldTooltip(event,this)"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></span></th>
+            <th style="--col-w:150px">Dampak<span class="th-info-icon" data-help="dampak" onmouseenter="showFieldTooltip(this)" onmouseleave="hideFieldTooltip(this)" onclick="toggleFieldTooltip(event,this)"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></span></th>
+            <th style="--col-w:70px">Jml Terpapar<span class="th-info-icon" data-help="jmlTerpapar" onmouseenter="showFieldTooltip(this)" onmouseleave="hideFieldTooltip(this)" onclick="toggleFieldTooltip(event,this)"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></span></th>
+            <th style="--col-w:52px">Ibu Hamil<span class="th-info-icon" data-help="ibuHamil" onmouseenter="showFieldTooltip(this)" onmouseleave="hideFieldTooltip(this)" onclick="toggleFieldTooltip(event,this)"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></span></th>
+            <th style="--col-w:52px">Ibu Menyusui<span class="th-info-icon" data-help="ibuMenyusui" onmouseenter="showFieldTooltip(this)" onmouseleave="hideFieldTooltip(this)" onclick="toggleFieldTooltip(event,this)"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></span></th>
+            <th style="--col-w:52px">Peny. Khusus<span class="th-info-icon" data-help="penyakitKhusus" onmouseenter="showFieldTooltip(this)" onmouseleave="hideFieldTooltip(this)" onclick="toggleFieldTooltip(event,this)"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></span></th>
+            <th style="--col-w:52px" class="group-sep">Disabilitas<span class="th-info-icon" data-help="disabilitas" onmouseenter="showFieldTooltip(this)" onmouseleave="hideFieldTooltip(this)" onclick="toggleFieldTooltip(event,this)"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></span></th>
+            <th style="--col-w:70px">ROP<span class="th-info-icon" data-help="ropBefore" onmouseenter="showFieldTooltip(this)" onmouseleave="hideFieldTooltip(this)" onclick="toggleFieldTooltip(event,this)"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></span></th>
+            <th style="--col-w:70px">RS<span class="th-info-icon" data-help="rsBefore" onmouseenter="showFieldTooltip(this)" onmouseleave="hideFieldTooltip(this)" onclick="toggleFieldTooltip(event,this)"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></span></th>
+            <th style="--col-w:80px">Score</th>
+            <th style="--col-w:90px" class="group-sep">Level<span class="th-info-icon" data-help="levelBefore" onmouseenter="showFieldTooltip(this)" onmouseleave="hideFieldTooltip(this)" onclick="toggleFieldTooltip(event,this)"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></span></th>
+            <th style="--col-w:220px" class="group-sep">Risk Controls<span class="th-info-icon" data-help="riskControls" onmouseenter="showFieldTooltip(this)" onmouseleave="hideFieldTooltip(this)" onclick="toggleFieldTooltip(event,this)"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></span></th>
             <th style="--col-w:70px">ROP</th>
             <th style="--col-w:70px">RS</th>
             <th style="--col-w:80px">Score</th>
-            <th style="--col-w:90px" class="group-sep">Level</th>
-            <th style="--col-w:220px" class="group-sep">Risk Controls</th>
-            <th style="--col-w:70px">ROP</th>
-            <th style="--col-w:70px">RS</th>
-            <th style="--col-w:80px">Score</th>
-            <th style="--col-w:90px">Level</th>
+            <th style="--col-w:90px">Level<span class="th-info-icon" data-help="levelAfter" onmouseenter="showFieldTooltip(this)" onmouseleave="hideFieldTooltip(this)" onclick="toggleFieldTooltip(event,this)"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></span></th>
           </tr>
         </thead>
         <tbody id="raTableBody"></tbody>
@@ -983,20 +1025,21 @@ function computeEvalAfter(ropBefore, rsBefore, controls) {
 // ── ROUTER ─────────────────────────────────────────────────
 
 function computeLevel(score) {
+  if (score >= 600) return 'Very High';
   if (score >= 210) return 'High';
   if (score >= 20)  return 'Medium';
   return 'Low';
 }
 
+// Ubah "Very High" -> "veryhigh" (tanpa spasi) supaya aman dipakai sebagai satu class CSS
 function levelClass(level) {
-  if (level === 'High')   return 'level-high';
-  if (level === 'Medium') return 'level-medium';
-  return 'level-low';
+  return String(level || '').toLowerCase().replace(/\s+/g, '');
 }
 
 function levelEmoji(level) {
-  if (level === 'High')   return '🔴';
-  if (level === 'Medium') return '🟠';
+  if (level === 'Very High') return '⛔';
+  if (level === 'High')      return '🔴';
+  if (level === 'Medium')    return '🟠';
   return '🟢';
 }
 
@@ -1133,10 +1176,10 @@ function buildTableRow(risk, idx) {
       </select>
     </td>
     <td id="tbl_scoreBefore_${risk.id}">
-      ${scoreBefore ? `<div class="t-score ${levelBefore.toLowerCase()}">${scoreBefore}</div>` : '<span style="color:#D1D5DB">—</span>'}
+      ${scoreBefore ? `<div class="t-score ${levelClass(levelBefore)}">${scoreBefore}</div>` : '<span style="color:#D1D5DB">—</span>'}
     </td>
     <td class="group-sep" id="tbl_levelBefore_${risk.id}">
-      ${levelBefore ? `<div class="t-score ${levelBefore.toLowerCase()}">${levelEmoji(levelBefore)} ${levelBefore}</div>` : '<span style="color:#D1D5DB">—</span>'}
+      ${levelBefore ? `<div class="t-score ${levelClass(levelBefore)}">${levelEmoji(levelBefore)} ${levelBefore}</div>` : '<span style="color:#D1D5DB">—</span>'}
     </td>
 
     <td class="group-sep" style="min-width:220px">
@@ -1154,10 +1197,10 @@ function buildTableRow(risk, idx) {
       ${after ? `<div class="t-score neutral">${after.rsAfter}</div>` : '<span style="color:#D1D5DB">—</span>'}
     </td>
     <td id="tbl_scoreAfter_${risk.id}">
-      ${after ? `<div class="t-score ${after.levelAfter.toLowerCase()}">${after.scoreAfter}</div>` : '<span style="color:#D1D5DB">—</span>'}
+      ${after ? `<div class="t-score ${levelClass(after.levelAfter)}">${after.scoreAfter}</div>` : '<span style="color:#D1D5DB">—</span>'}
     </td>
     <td id="tbl_levelAfter_${risk.id}">
-      ${after ? `<div class="t-score ${after.levelAfter.toLowerCase()}">${levelEmoji(after.levelAfter)} ${after.levelAfter}</div>` : '<span style="color:#D1D5DB">—</span>'}
+      ${after ? `<div class="t-score ${levelClass(after.levelAfter)}">${levelEmoji(after.levelAfter)} ${after.levelAfter}</div>` : '<span style="color:#D1D5DB">—</span>'}
     </td>
 
     <td style="text-align:center;padding:4px;">
@@ -1203,12 +1246,12 @@ function tblEvalChange(riskId, field, value) {
     const after = computeEvalAfter(rop, rs, risk.riskControls || []);
 
     const setEl = (id, html) => { const el = document.getElementById(id); if (el) el.innerHTML = html; };
-    setEl('tbl_scoreBefore_' + riskId, `<div class="t-score ${levelBefore.toLowerCase()}">${scoreBefore}</div>`);
-    setEl('tbl_levelBefore_' + riskId, `<div class="t-score ${levelBefore.toLowerCase()}">${levelEmoji(levelBefore)} ${levelBefore}</div>`);
+    setEl('tbl_scoreBefore_' + riskId, `<div class="t-score ${levelClass(levelBefore)}">${scoreBefore}</div>`);
+    setEl('tbl_levelBefore_' + riskId, `<div class="t-score ${levelClass(levelBefore)}">${levelEmoji(levelBefore)} ${levelBefore}</div>`);
     setEl('tbl_ropAfter_'    + riskId, `<div class="t-score neutral">${after.ropAfter}</div>`);
     setEl('tbl_rsAfter_'     + riskId, `<div class="t-score neutral">${after.rsAfter}</div>`);
-    setEl('tbl_scoreAfter_'  + riskId, `<div class="t-score ${after.levelAfter.toLowerCase()}">${after.scoreAfter}</div>`);
-    setEl('tbl_levelAfter_'  + riskId, `<div class="t-score ${after.levelAfter.toLowerCase()}">${levelEmoji(after.levelAfter)} ${after.levelAfter}</div>`);
+    setEl('tbl_scoreAfter_'  + riskId, `<div class="t-score ${levelClass(after.levelAfter)}">${after.scoreAfter}</div>`);
+    setEl('tbl_levelAfter_'  + riskId, `<div class="t-score ${levelClass(after.levelAfter)}">${levelEmoji(after.levelAfter)} ${after.levelAfter}</div>`);
   }
   triggerAutoSave();
 }
@@ -1292,8 +1335,8 @@ function refreshTableEvalCells(riskId) {
     const after = computeEvalAfter(rop, rs, risk.riskControls || []);
     setEl('tbl_ropAfter_'   + riskId, `<div class="t-score neutral">${after.ropAfter}</div>`);
     setEl('tbl_rsAfter_'    + riskId, `<div class="t-score neutral">${after.rsAfter}</div>`);
-    setEl('tbl_scoreAfter_' + riskId, `<div class="t-score ${after.levelAfter.toLowerCase()}">${after.scoreAfter}</div>`);
-    setEl('tbl_levelAfter_' + riskId, `<div class="t-score ${after.levelAfter.toLowerCase()}">${levelEmoji(after.levelAfter)} ${after.levelAfter}</div>`);
+    setEl('tbl_scoreAfter_' + riskId, `<div class="t-score ${levelClass(after.levelAfter)}">${after.scoreAfter}</div>`);
+    setEl('tbl_levelAfter_' + riskId, `<div class="t-score ${levelClass(after.levelAfter)}">${levelEmoji(after.levelAfter)} ${after.levelAfter}</div>`);
   }
 
   const status = computeStatus(risk);
@@ -1591,6 +1634,103 @@ function showToast(msg, type) {
 function esc(str) {
   if (str == null) return '';
   return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── FIELD-LEVEL HELP TOOLTIPS (ikon ⓘ di header kolom) ────────
+const FIELD_HELP = {
+  workingArea:    'Area/lokasi kerja secara umum. Contoh: "Produksi Line 3", "Gudang Bahan Baku".',
+  jobTitle:       'Jabatan pekerja yang melakukan aktivitas ini. Contoh: "Operator Mesin".',
+  workstation:    'Mesin/instrumen spesifik yang dipakai saat aktivitas berlangsung.',
+  aktivitas:      'Deskripsikan pekerjaan yang sedang dilakukan saat risiko ini muncul.',
+  rutin:          'R = Rutin (dilakukan terus-menerus). NR = Non-Rutin (sesekali/insidental).',
+  kategori:       'Pilih 1 dari 5 kategori risiko perusahaan. Menentukan pilihan bahaya & skala keparahan di kolom berikutnya.',
+  asumsiBahaya:   'Pilih bahaya spesifik dari daftar sesuai Kategori yang dipilih.',
+  dampak:         'Jelaskan akibat yang mungkin terjadi kalau bahaya ini benar-benar terjadi.',
+  jmlTerpapar:    'Jumlah pekerja yang terpapar risiko ini. Hanya berlaku untuk kategori OH.',
+  ibuHamil:       'Dari jumlah terpapar, berapa yang sedang hamil. Hanya untuk kategori OH.',
+  ibuMenyusui:    'Dari jumlah terpapar, berapa yang sedang menyusui. Hanya untuk kategori OH.',
+  penyakitKhusus: 'Dari jumlah terpapar, berapa yang punya penyakit khusus. Hanya untuk kategori OH.',
+  disabilitas:    'Dari jumlah terpapar, berapa yang memiliki disabilitas. Hanya untuk kategori OH.',
+  ropBefore:      'Seberapa sering kejadian ini biasanya terjadi. Makin tinggi angka, makin sering.',
+  rsBefore:       'Seberapa parah dampaknya kalau terjadi. Makin tinggi angka, makin parah — deskripsi berbeda per Kategori.',
+  levelBefore:    'Otomatis: ROP × RS. Level (Low/Medium/High/Very High) menentukan wajib-tidaknya pengendalian.',
+  riskControls:   'Tindakan mitigasi untuk menurunkan risiko. Klik "Edit Pengendalian" untuk isi Strategi, Kategori, Aktivitas Pengendalian, PIC, dan Due Date.',
+  levelAfter:     'Skor risiko setelah pengendalian. Baru turun kalau status pengendaliannya sudah "Done".',
+};
+
+let _activeTooltipIcon = null;
+
+function _getTooltipPopupEl() {
+  let popup = document.getElementById('fieldTooltipPopup');
+  if (!popup) {
+    popup = document.createElement('div');
+    popup.id = 'fieldTooltipPopup';
+    popup.className = 'th-tooltip-popup';
+    document.body.appendChild(popup);
+  }
+  return popup;
+}
+
+function _positionTooltipPopup(popup, iconEl) {
+  const rect = iconEl.getBoundingClientRect();
+  const vpWidth = window.innerWidth;
+
+  popup.style.visibility = 'hidden';
+  popup.style.display = 'block';
+  const popupW = popup.offsetWidth;
+  const popupH = popup.offsetHeight;
+
+  let left = rect.left + rect.width / 2 - popupW / 2;
+  left = Math.max(8, Math.min(left, vpWidth - popupW - 8));
+
+  const spaceAbove = rect.top;
+  const openBelow  = spaceAbove < popupH + 12;
+  const top = openBelow ? (rect.bottom + 8) : (rect.top - popupH - 8);
+
+  popup.style.left = left + 'px';
+  popup.style.top  = Math.max(8, top) + 'px';
+  popup.style.visibility = 'visible';
+}
+
+function showFieldTooltip(iconEl) {
+  const text = FIELD_HELP[iconEl.dataset.help];
+  if (!text) return;
+  _activeTooltipIcon = iconEl;
+  iconEl.classList.add('tt-active');
+  const popup = _getTooltipPopupEl();
+  popup.textContent = text;
+  _positionTooltipPopup(popup, iconEl);
+}
+
+function hideFieldTooltip(iconEl) {
+  if (_activeTooltipIcon !== iconEl) return;
+  iconEl.classList.remove('tt-active');
+  const popup = document.getElementById('fieldTooltipPopup');
+  if (popup) popup.style.display = 'none';
+  _activeTooltipIcon = null;
+}
+
+function toggleFieldTooltip(e, iconEl) {
+  e.stopPropagation();
+  if (_activeTooltipIcon === iconEl) { hideFieldTooltip(iconEl); return; }
+  if (_activeTooltipIcon) hideFieldTooltip(_activeTooltipIcon);
+  showFieldTooltip(iconEl);
+}
+
+document.addEventListener('click', function(e) {
+  if (!_activeTooltipIcon) return;
+  if (e.target.closest('.th-info-icon') || e.target.closest('#fieldTooltipPopup')) return;
+  hideFieldTooltip(_activeTooltipIcon);
+});
+
+const _tableOuterElForTooltip = document.querySelector('.table-outer');
+if (_tableOuterElForTooltip) {
+  _tableOuterElForTooltip.addEventListener('scroll', function() {
+    if (_activeTooltipIcon) {
+      const popup = document.getElementById('fieldTooltipPopup');
+      if (popup) _positionTooltipPopup(popup, _activeTooltipIcon);
+    }
+  });
 }
 
 function autoGrow(el) {
