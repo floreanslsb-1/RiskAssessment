@@ -113,26 +113,114 @@ button { cursor: pointer; }
 }
 .tour-overlay.active { opacity: 1; }
 
-@keyframes tourPulse {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(200,16,46,.45); }
-  50%      { box-shadow: 0 0 0 6px rgba(200,16,46,0); }
-}
-.tour-highlight {
-  outline: 2px solid var(--red) !important;
-  outline-offset: 2px;
-  animation: tourPulse 1.6s infinite;
-  position: relative;
-  z-index: 20;
+function startTour() {
+  _tourStepIdx = 0;
+  _getTourOverlayEl().classList.add('active');
+  _getTourCardEl().classList.add('active');
+  _renderTourStep();
 }
 
-.tour-card {
-  position: fixed; right: 24px; bottom: 24px;
-  width: 340px; max-width: calc(100vw - 48px);
-  background: var(--white); border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-lg); border: 1px solid #E5E7EB;
-  z-index: 1000; padding: 18px 20px;
-  display: none;
+function endTour() {
+  const overlay = document.getElementById('tourOverlay');
+  const card    = document.getElementById('tourCard');
+  if (overlay) overlay.classList.remove('active');
+  if (card)    { card.classList.remove('active'); card.style.visibility = 'hidden'; }
+  if (_tourHighlightEl) { _tourHighlightEl.classList.remove('tour-highlight'); _tourHighlightEl = null; }
 }
+
+function tourNext() {
+  if (_tourStepIdx >= TOUR_STEPS.length - 1) { endTour(); return; }
+  _tourStepIdx++;
+  _renderTourStep();
+}
+
+function tourBack() {
+  if (_tourStepIdx <= 0) return;
+  _tourStepIdx--;
+  _renderTourStep();
+}
+
+function _renderTourStep() {
+  const step = TOUR_STEPS[_tourStepIdx];
+  if (_tourHighlightEl) { _tourHighlightEl.classList.remove('tour-highlight'); _tourHighlightEl = null; }
+
+  document.getElementById('tourStepIndicator').textContent = 'Langkah ' + (_tourStepIdx + 1) + ' dari ' + TOUR_STEPS.length;
+  document.getElementById('tourTitle').textContent = step.title;
+  document.getElementById('tourBody').textContent  = step.body;
+  document.getElementById('tourBackBtn').disabled  = (_tourStepIdx === 0);
+  document.getElementById('tourNextBtn').textContent = (_tourStepIdx === TOUR_STEPS.length - 1) ? 'Selesai' : 'Lanjut';
+
+  if (step.target) {
+    const el = document.querySelector(step.target);
+    if (el) {
+      _tourHighlightEl = el;
+      el.classList.add('tour-highlight');
+      el.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
+    }
+  } else {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+  _trackTourCardPosition();
+}
+
+// Hitung posisi kartu penjelasan supaya nempel dekat elemen yang di-highlight,
+// dan pilih atas/bawah otomatis biar tidak pernah menutupi elemen itu sendiri
+// (penting untuk kasus tombol Kirim yang nempel di dasar layar).
+function _positionTourCard() {
+  const card = document.getElementById('tourCard');
+  if (!card) return;
+  const vpW = window.innerWidth;
+  const vpH = window.innerHeight;
+  const gap = 14;
+  const cardW = card.offsetWidth  || 340;
+  const cardH = card.offsetHeight || 160;
+
+  let rect;
+  if (_tourHighlightEl) {
+    const r = _tourHighlightEl.getBoundingClientRect();
+    rect = {
+      left:   Math.max(r.left, 0),
+      right:  Math.min(r.right, vpW),
+      top:    Math.max(r.top, 0),
+      bottom: Math.min(r.bottom, vpH),
+    };
+  } else {
+    rect = { left: vpW / 2 - 1, right: vpW / 2 + 1, top: vpH / 2 - 1, bottom: vpH / 2 + 1 };
+  }
+
+  const spaceBelow = vpH - rect.bottom;
+  const spaceAbove = rect.top;
+
+  let top = (spaceBelow >= cardH + gap || spaceBelow >= spaceAbove)
+    ? rect.bottom + gap
+    : rect.top - cardH - gap;
+  top = Math.max(gap, Math.min(top, vpH - cardH - gap));
+
+  let left = rect.left;
+  if (left + cardW + gap > vpW) left = vpW - cardW - gap;
+  left = Math.max(gap, left);
+
+  card.style.top = top + 'px';
+  card.style.left = left + 'px';
+  card.style.visibility = 'visible';
+}
+
+// Posisi target berubah selama animasi scroll berjalan — jadi kartu ikut
+// dihitung ulang tiap frame selama ~500ms supaya "mengikuti" sampai posisi akhir.
+function _trackTourCardPosition() {
+  const start = performance.now();
+  const duration = 500;
+  function frame(now) {
+    _positionTourCard();
+    if (now - start < duration) requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+}
+
+window.addEventListener('resize', function() {
+  const card = document.getElementById('tourCard');
+  if (card && card.classList.contains('active')) _positionTourCard();
+});
 .tour-card.active { display: block; }
 .tour-card .tour-step-indicator { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--red); margin-bottom: 6px; }
 .tour-card .tour-title { font-size: 15px; font-weight: 700; margin-bottom: 6px; }
@@ -1941,7 +2029,7 @@ function endTour() {
   const overlay = document.getElementById('tourOverlay');
   const card    = document.getElementById('tourCard');
   if (overlay) overlay.classList.remove('active');
-  if (card)    card.classList.remove('active');
+  if (card)    { card.classList.remove('active'); card.style.visibility = 'hidden'; }
   if (_tourHighlightEl) { _tourHighlightEl.classList.remove('tour-highlight'); _tourHighlightEl = null; }
 }
 
@@ -1977,7 +2065,67 @@ function _renderTourStep() {
   } else {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
+  _trackTourCardPosition();
 }
+
+// Hitung posisi kartu penjelasan supaya nempel dekat elemen yang di-highlight,
+// dan pilih atas/bawah otomatis biar tidak pernah menutupi elemen itu sendiri
+// (penting untuk kasus tombol Kirim yang nempel di dasar layar).
+function _positionTourCard() {
+  const card = document.getElementById('tourCard');
+  if (!card) return;
+  const vpW = window.innerWidth;
+  const vpH = window.innerHeight;
+  const gap = 14;
+  const cardW = card.offsetWidth  || 340;
+  const cardH = card.offsetHeight || 160;
+
+  let rect;
+  if (_tourHighlightEl) {
+    const r = _tourHighlightEl.getBoundingClientRect();
+    rect = {
+      left:   Math.max(r.left, 0),
+      right:  Math.min(r.right, vpW),
+      top:    Math.max(r.top, 0),
+      bottom: Math.min(r.bottom, vpH),
+    };
+  } else {
+    rect = { left: vpW / 2 - 1, right: vpW / 2 + 1, top: vpH / 2 - 1, bottom: vpH / 2 + 1 };
+  }
+
+  const spaceBelow = vpH - rect.bottom;
+  const spaceAbove = rect.top;
+
+  let top = (spaceBelow >= cardH + gap || spaceBelow >= spaceAbove)
+    ? rect.bottom + gap
+    : rect.top - cardH - gap;
+  top = Math.max(gap, Math.min(top, vpH - cardH - gap));
+
+  let left = rect.left;
+  if (left + cardW + gap > vpW) left = vpW - cardW - gap;
+  left = Math.max(gap, left);
+
+  card.style.top = top + 'px';
+  card.style.left = left + 'px';
+  card.style.visibility = 'visible';
+}
+
+// Posisi target berubah selama animasi scroll berjalan — jadi kartu ikut
+// dihitung ulang tiap frame selama ~500ms supaya "mengikuti" sampai posisi akhir.
+function _trackTourCardPosition() {
+  const start = performance.now();
+  const duration = 500;
+  function frame(now) {
+    _positionTourCard();
+    if (now - start < duration) requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+}
+
+window.addEventListener('resize', function() {
+  const card = document.getElementById('tourCard');
+  if (card && card.classList.contains('active')) _positionTourCard();
+});
 
 function autoGrow(el) {
   el.style.height = '30px';
