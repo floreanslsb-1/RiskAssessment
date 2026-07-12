@@ -93,16 +93,58 @@ button { cursor: pointer; }
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: 6px;
   padding: 0 14px;
   border-left: 1px solid #E5E7EB;
 }
-.header-gear a {
+.header-gear a, .header-gear button {
   display: flex; align-items: center; justify-content: center;
   width: 30px; height: 30px; border-radius: 6px;
   color: #9CA3AF; text-decoration: none; font-size: 16px;
+  background: none; border: none; cursor: pointer; padding: 0;
   transition: background 150ms ease, color 150ms ease;
 }
-.header-gear a:hover { background: #F3F4F6; color: #C8102E; }
+.header-gear a:hover, .header-gear button:hover { background: #F3F4F6; color: #C8102E; }
+
+/* ── TOUR ────────────────────────────────────────── */
+.tour-overlay {
+  position: fixed; inset: 0; background: rgba(17,18,20,.35);
+  z-index: 900; pointer-events: none; opacity: 0; transition: opacity 200ms ease;
+}
+.tour-overlay.active { opacity: 1; }
+
+@keyframes tourPulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(200,16,46,.45); }
+  50%      { box-shadow: 0 0 0 6px rgba(200,16,46,0); }
+}
+.tour-highlight {
+  outline: 2px solid var(--red) !important;
+  outline-offset: 2px;
+  animation: tourPulse 1.6s infinite;
+  position: relative;
+  z-index: 20;
+}
+
+.tour-card {
+  position: fixed; right: 24px; bottom: 24px;
+  width: 340px; max-width: calc(100vw - 48px);
+  background: var(--white); border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg); border: 1px solid #E5E7EB;
+  z-index: 1000; padding: 18px 20px;
+  display: none;
+}
+.tour-card.active { display: block; }
+.tour-card .tour-step-indicator { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--red); margin-bottom: 6px; }
+.tour-card .tour-title { font-size: 15px; font-weight: 700; margin-bottom: 6px; }
+.tour-card .tour-body { font-size: 12.5px; color: var(--gray-700); line-height: 1.55; margin-bottom: 14px; }
+.tour-card .tour-actions { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.tour-card .tour-btn-skip { background: none; border: none; color: var(--gray-500); font-size: 12px; font-weight: 600; cursor: pointer; padding: 6px 4px; }
+.tour-card .tour-btn-skip:hover { color: var(--gray-700); }
+.tour-card .tour-nav-group { display: flex; gap: 8px; }
+.tour-card .tour-btn-back { padding: 7px 14px; border: 1px solid var(--gray-300); background: var(--white); border-radius: var(--radius); font-size: 12px; font-weight: 600; cursor: pointer; }
+.tour-card .tour-btn-back:disabled { opacity: .4; cursor: not-allowed; }
+.tour-card .tour-btn-next { padding: 7px 16px; border: none; background: var(--red); color: white; border-radius: var(--radius); font-size: 12px; font-weight: 700; cursor: pointer; }
+.tour-card .tour-btn-next:hover { background: var(--red-dark); }
 .header-logo {
   padding: 12px 16px;
   display: flex;
@@ -587,6 +629,9 @@ button { cursor: pointer; }
         <div class="meta-row"><span class="label">Tgl. Berlaku</span><span class="value"><?= raConfig.effectiveDateFormatted ?></span></div>
       </div>
       <div class="header-gear">
+        <button type="button" id="tourStartBtn" title="Panduan Pengisian" onclick="startTour()">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        </button>
         <a id="adminGearLink" href="#" target="_blank" title="Admin Panel">⚙</a>
       </div>
     </div>
@@ -607,13 +652,13 @@ button { cursor: pointer; }
         <thead>
           <tr class="col-group-header">
             <th class="row-num" rowspan="2">#</th>
-            <th colspan="1" class="cgh-cell cgh-action group-sep">Status</th>
-            <th colspan="5" class="cgh-cell cgh-identitas group-sep">Identitas</th>
-            <th colspan="4" class="cgh-cell cgh-identifikasi group-sep">Identifikasi Bahaya</th>
-            <th colspan="4" class="cgh-cell cgh-dilarang group-sep">Kategori Dilarang</th>
-            <th colspan="4" class="cgh-cell cgh-eval-before group-sep">Evaluasi Sebelum</th>
-            <th colspan="1" class="cgh-cell cgh-controls group-sep">Pengendalian</th>
-            <th colspan="4" class="cgh-cell cgh-eval-after group-sep">Evaluasi Sesudah</th>
+            <th id="cghStatus" colspan="1" class="cgh-cell cgh-action group-sep">Status</th>
+            <th id="cghIdentitas" colspan="5" class="cgh-cell cgh-identitas group-sep">Identitas</th>
+            <th id="cghIdentifikasi" colspan="4" class="cgh-cell cgh-identifikasi group-sep">Identifikasi Bahaya</th>
+            <th id="cghDilarang" colspan="4" class="cgh-cell cgh-dilarang group-sep">Kategori Dilarang</th>
+            <th id="cghEvalBefore" colspan="4" class="cgh-cell cgh-eval-before group-sep">Evaluasi Sebelum</th>
+            <th id="cghControls" colspan="1" class="cgh-cell cgh-controls group-sep">Pengendalian</th>
+            <th id="cghEvalAfter" colspan="4" class="cgh-cell cgh-eval-after group-sep">Evaluasi Sesudah</th>
             <th class="cgh-cell cgh-action" rowspan="2" style="--col-w:44px"></th>
           </tr>
           <tr class="col-header-row" id="colHeaderRow">
@@ -1833,6 +1878,105 @@ if (_tableOuterElForTooltip) {
       if (popup) _positionTooltipPopup(popup, _activeTooltipIcon);
     }
   });
+}
+
+// ── TOUR PANDUAN PENGISIAN ─────────────────────────────────────
+const TOUR_STEPS = [
+  { target: null, title: 'Selamat datang 👋', body: 'Form ini dipakai untuk menilai risiko dari suatu aktivitas kerja sebelum FUP disetujui. Isi baris demi baris — setiap baris mewakili satu aktivitas dan satu bahaya spesifik. Yuk kita jalan-jalan sebentar.' },
+  { target: '#cghStatus', title: 'Status', body: 'Kolom ini terisi otomatis, muncul setelah kamu mengisi Kategori dan Asumsi/Bahaya di baris yang sama — jadi jangan khawatir kalau masih kosong di awal.' },
+  { target: '#cghIdentitas', title: 'Identitas', body: 'Working Area = area kerja umum. Job Title = jabatan yang melakukan aktivitas. Workstation = mesin/instrumen spesifik. Aktivitas = pekerjaan yang dilakukan. R/NR = Rutin atau Non-Rutin.' },
+  { target: '#cghIdentifikasi', title: 'Identifikasi Bahaya', body: 'Pilih Kategori risiko (5 pilihan), lalu Asumsi/Bahaya spesifik yang menyesuaikan Kategori tadi. Jelaskan Dampaknya, dan isi Jml Terpapar kalau kategorinya OH.' },
+  { target: '#cghDilarang', title: 'Kategori Dilarang', body: 'Khusus kategori OH: catat berapa dari pekerja yang terpapar termasuk kelompok rentan — ibu hamil, ibu menyusui, penyakit khusus, atau disabilitas.' },
+  { target: '#cghEvalBefore', title: 'Evaluasi Sebelum', body: 'ROP = seberapa sering kejadiannya. RS = seberapa parah dampaknya (beda per Kategori). Score & Level terhitung otomatis — cek ikon ⓘ di masing-masing kolom untuk lihat definisi lengkapnya.' },
+  { target: '#cghControls', title: 'Pengendalian', body: 'Klik "Edit Pengendalian" untuk tambah tindakan mitigasi: Strategi, Kategori, Control Activity, PIC, dan Due Date.' },
+  { target: '#cghEvalAfter', title: 'Evaluasi Sesudah', body: 'Skor risiko setelah pengendalian diterapkan. Ingat: skor baru turun kalau status pengendaliannya sudah "Done".' },
+  { target: '.btn-submit', title: 'Selesai & Kirim', body: 'Kalau semua baris sudah lengkap, klik tombol ini untuk kirim. Data otomatis tersimpan tiap kali kamu mengisi, jadi tidak akan hilang meski belum dikirim.' },
+];
+
+let _tourStepIdx = 0;
+let _tourHighlightEl = null;
+
+function _getTourOverlayEl() {
+  let el = document.getElementById('tourOverlay');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'tourOverlay';
+    el.className = 'tour-overlay';
+    document.body.appendChild(el);
+  }
+  return el;
+}
+
+function _getTourCardEl() {
+  let el = document.getElementById('tourCard');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'tourCard';
+    el.className = 'tour-card';
+    el.innerHTML = `
+      <div class="tour-step-indicator" id="tourStepIndicator"></div>
+      <div class="tour-title" id="tourTitle"></div>
+      <div class="tour-body" id="tourBody"></div>
+      <div class="tour-actions">
+        <button type="button" class="tour-btn-skip" onclick="endTour()">Lewati</button>
+        <div class="tour-nav-group">
+          <button type="button" class="tour-btn-back" id="tourBackBtn" onclick="tourBack()">Kembali</button>
+          <button type="button" class="tour-btn-next" id="tourNextBtn" onclick="tourNext()">Lanjut</button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(el);
+  }
+  return el;
+}
+
+function startTour() {
+  _tourStepIdx = 0;
+  _getTourOverlayEl().classList.add('active');
+  _getTourCardEl().classList.add('active');
+  _renderTourStep();
+}
+
+function endTour() {
+  const overlay = document.getElementById('tourOverlay');
+  const card    = document.getElementById('tourCard');
+  if (overlay) overlay.classList.remove('active');
+  if (card)    card.classList.remove('active');
+  if (_tourHighlightEl) { _tourHighlightEl.classList.remove('tour-highlight'); _tourHighlightEl = null; }
+}
+
+function tourNext() {
+  if (_tourStepIdx >= TOUR_STEPS.length - 1) { endTour(); return; }
+  _tourStepIdx++;
+  _renderTourStep();
+}
+
+function tourBack() {
+  if (_tourStepIdx <= 0) return;
+  _tourStepIdx--;
+  _renderTourStep();
+}
+
+function _renderTourStep() {
+  const step = TOUR_STEPS[_tourStepIdx];
+  if (_tourHighlightEl) { _tourHighlightEl.classList.remove('tour-highlight'); _tourHighlightEl = null; }
+
+  document.getElementById('tourStepIndicator').textContent = 'Langkah ' + (_tourStepIdx + 1) + ' dari ' + TOUR_STEPS.length;
+  document.getElementById('tourTitle').textContent = step.title;
+  document.getElementById('tourBody').textContent  = step.body;
+  document.getElementById('tourBackBtn').disabled  = (_tourStepIdx === 0);
+  document.getElementById('tourNextBtn').textContent = (_tourStepIdx === TOUR_STEPS.length - 1) ? 'Selesai' : 'Lanjut';
+
+  if (step.target) {
+    const el = document.querySelector(step.target);
+    if (el) {
+      _tourHighlightEl = el;
+      el.classList.add('tour-highlight');
+      el.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
+    }
+  } else {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
 }
 
 function autoGrow(el) {
