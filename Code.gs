@@ -33,6 +33,7 @@ function doGet(e) {
     adminTemplate.adminEmails = getRaAdminEmailsList_();
     return adminTemplate.evaluate()
       .setTitle('Admin Panel — Kajian Risiko')
+      .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL)
       .addMetaTag('viewport', 'width=device-width, initial-scale=1');
   }
 
