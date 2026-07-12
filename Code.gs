@@ -401,6 +401,7 @@ function computeEvalAfter_(ropBefore, rsBefore, controls) {
 }
 
 function computeRiskLevel_(score) {
+  if (score >= 600) return 'Very High';
   if (score >= 210) return 'High';
   if (score >= 20)  return 'Medium';
   return 'Low';
