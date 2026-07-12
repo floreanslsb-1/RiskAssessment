@@ -193,7 +193,43 @@ button { cursor: pointer; }
   z-index: 3000;
   text-transform: none;
   letter-spacing: normal;
-  pointer-events: none;
+}
+.th-tooltip-popup.th-tooltip-rich {
+  max-width: 320px;
+  max-height: 360px;
+  overflow-y: auto;
+  padding: 10px 12px;
+}
+.th-tooltip-popup .tt-title {
+  font-weight: 700;
+  font-size: 11px;
+  margin-bottom: 6px;
+  color: white;
+}
+.th-tooltip-popup .tt-subtitle {
+  font-weight: 700;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  color: #FCA5A5;
+  margin: 10px 0 3px;
+}
+.th-tooltip-popup .tt-subtitle:first-of-type { margin-top: 0; }
+.th-tooltip-popup .tt-table { width: 100%; border-collapse: collapse; }
+.th-tooltip-popup .tt-table td {
+  padding: 3px 0;
+  vertical-align: top;
+  border-bottom: 1px solid rgba(255,255,255,.08);
+  font-size: 10.5px;
+}
+.th-tooltip-popup .tt-table tr:last-child td { border-bottom: none; }
+.th-tooltip-popup .tt-table td.tt-lvl {
+  font-weight: 700;
+  font-family: var(--font-mono);
+  color: #FCA5A5;
+  padding-right: 8px;
+  white-space: nowrap;
+  width: 1%;
 }
 
 /* ── SCORE DISPLAY ─────────────────────────────── */
@@ -577,7 +613,7 @@ button { cursor: pointer; }
             <th colspan="4" class="cgh-cell cgh-dilarang group-sep">Kategori Dilarang</th>
             <th colspan="4" class="cgh-cell cgh-eval-before group-sep">Evaluasi Sebelum</th>
             <th colspan="1" class="cgh-cell cgh-controls group-sep">Pengendalian</th>
-            <th colspan="4" class="cgh-cell cgh-eval-after group-sep">Evaluasi Sesudah <span class="cgh-info" title="Skor & level di sini hanya turun jika status pengendalian risiko (kolom Pengendalian) sudah &quot;Done&quot;. Selama masih kosong atau &quot;On Progress&quot;, nilai tetap sama seperti Evaluasi Sebelum.">ⓘ</span></th>
+            <th colspan="4" class="cgh-cell cgh-eval-after group-sep">Evaluasi Sesudah</th>
             <th class="cgh-cell cgh-action" rowspan="2" style="--col-w:44px"></th>
           </tr>
           <tr class="col-header-row" id="colHeaderRow">
@@ -1446,14 +1482,14 @@ function buildControlCardHTML(ctrl, num, riskId) {
   <div class="control-card-body">
     <div class="control-grid">
       <div class="field">
-        <label>Strategi <span class="req">*</span></label>
+        <label>Strategi <span class="req">*</span><span class="th-info-icon" data-help="strategiPengendalian" onmouseenter="showFieldTooltip(this)" onmouseleave="hideFieldTooltip(this)" onclick="toggleFieldTooltip(event,this)"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></span></label>
         <select id="strat_${ctrl.id}" onchange="onStrategChange('${riskId}','${ctrl.id}')">
           <option value="">-- Pilih --</option>
           ${stratOpts.map(s=>`<option value="${s}" ${ctrl.strategi===s?'selected':''}>${s}</option>`).join('')}
         </select>
       </div>
       <div class="field" id="kategoriField_${ctrl.id}" ${ctrl.strategi==='Transference'?'style="display:none"':''}>
-        <label>Kategori <span class="req">*</span></label>
+        <label>Kategori <span class="req">*</span><span class="th-info-icon" data-help="kategoriPengendalian" onmouseenter="showFieldTooltip(this)" onmouseleave="hideFieldTooltip(this)" onclick="toggleFieldTooltip(event,this)"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></span></label>
         <select id="kat_${ctrl.id}" onchange="onKategoriCtrlChange('${riskId}','${ctrl.id}')">
           <option value="">-- Pilih --</option>
           ${buildKategoriCtrlOptions(ctrl.strategi, ctrl.kategori)}
@@ -1637,28 +1673,75 @@ function esc(str) {
 }
 
 // ── FIELD-LEVEL HELP TOOLTIPS (ikon ⓘ di header kolom) ────────
+// ── BUILDER KONTEN DINAMIS (ambil dari RA_CONFIG, ikut berubah kalau admin edit) ──
+function buildRopMatrixHtml() {
+  const labels = RA_CONFIG.ropLabels || {};
+  const levels = [10, 8, 6, 4, 1];
+  const rows = levels.map(function(lvl) {
+    return '<tr><td class="tt-lvl">' + lvl + '</td><td>' + esc(labels[lvl] || '—') + '</td></tr>';
+  }).join('');
+  return '<div class="tt-title">Definisi ROP (seberapa sering)</div><table class="tt-table"><tbody>' + rows + '</tbody></table>';
+}
+
+function buildRsMatrixHtml() {
+  const byKat  = RA_CONFIG.rsLabelsByKategori || {};
+  const levels = [100, 40, 21, 8, 2];
+  const kats   = RA_CONFIG.kategoriList || [];
+  const sections = kats.map(function(kat) {
+    const labels = byKat[kat] || {};
+    const rows = levels.map(function(lvl) {
+      return '<tr><td class="tt-lvl">' + lvl + '</td><td>' + esc(labels[lvl] || '—') + '</td></tr>';
+    }).join('');
+    return '<div class="tt-subtitle">' + esc(kat) + '</div><table class="tt-table"><tbody>' + rows + '</tbody></table>';
+  }).join('');
+  return '<div class="tt-title">Definisi RS (seberapa parah) per Kategori</div>' + sections;
+}
+
+function buildStrategiHelpHtml() {
+  return '<div class="tt-title">Strategi Manajemen Risiko</div><table class="tt-table"><tbody>' +
+    '<tr><td class="tt-lvl">Avoidance</td><td>Menghindari/menghilangkan penyebab risiko sepenuhnya.</td></tr>' +
+    '<tr><td class="tt-lvl">Mitigate</td><td>Mengurangi kemungkinan dan/atau keparahan lewat tindakan teknis atau prosedural.</td></tr>' +
+    '<tr><td class="tt-lvl">Acceptance</td><td>Menerima risiko, tapi menyiapkan pengendalian/APD untuk saat risiko benar-benar terjadi.</td></tr>' +
+    '<tr><td class="tt-lvl">Transference</td><td>Memindahkan risiko ke pihak lain (asuransi, kontraktor, dll) — tidak menurunkan skor.</td></tr>' +
+    '</tbody></table>';
+}
+
+function buildKategoriPengendalianHelpHtml() {
+  return '<div class="tt-title">Kategori Pengendalian &amp; efeknya ke skor</div><table class="tt-table"><tbody>' +
+    '<tr><td class="tt-lvl">Eliminasi</td><td>Menghilangkan aktivitas/sumber risiko sepenuhnya (di bawah Avoidance).</td></tr>' +
+    '<tr><td class="tt-lvl">Substitusi</td><td>Mengganti aktivitas dengan yang tidak berbahaya (di bawah Mitigate).</td></tr>' +
+    '<tr><td class="tt-lvl">Engineering Control</td><td>Pengendalian teknis di sumber bahaya (Mitigate) → turun 1 level ROP <strong>dan</strong> RS.</td></tr>' +
+    '<tr><td class="tt-lvl">Administration Control</td><td>Perbaikan prosedur/SOP/rambu (Mitigate atau Acceptance) → turun 1 level ROP saja.</td></tr>' +
+    '<tr><td class="tt-lvl">PPE / APD</td><td>Alat pelindung diri (Acceptance) → turun 1 level RS saja.</td></tr>' +
+    '</tbody></table>';
+}
+
+// ── FIELD-LEVEL HELP TOOLTIPS (ikon ⓘ di header kolom & modal) ────────
 const FIELD_HELP = {
-  workingArea:    'Area/lokasi kerja secara umum. Contoh: "Produksi Line 3", "Gudang Bahan Baku".',
-  jobTitle:       'Jabatan pekerja yang melakukan aktivitas ini. Contoh: "Operator Mesin".',
-  workstation:    'Mesin/instrumen spesifik yang dipakai saat aktivitas berlangsung.',
-  aktivitas:      'Deskripsikan pekerjaan yang sedang dilakukan saat risiko ini muncul.',
-  rutin:          'R = Rutin (dilakukan terus-menerus). NR = Non-Rutin (sesekali/insidental).',
-  kategori:       'Pilih 1 dari 5 kategori risiko perusahaan. Menentukan pilihan bahaya & skala keparahan di kolom berikutnya.',
-  asumsiBahaya:   'Pilih bahaya spesifik dari daftar sesuai Kategori yang dipilih.',
-  dampak:         'Jelaskan akibat yang mungkin terjadi kalau bahaya ini benar-benar terjadi.',
-  jmlTerpapar:    'Jumlah pekerja yang terpapar risiko ini. Hanya berlaku untuk kategori OH.',
-  ibuHamil:       'Dari jumlah terpapar, berapa yang sedang hamil. Hanya untuk kategori OH.',
-  ibuMenyusui:    'Dari jumlah terpapar, berapa yang sedang menyusui. Hanya untuk kategori OH.',
-  penyakitKhusus: 'Dari jumlah terpapar, berapa yang punya penyakit khusus. Hanya untuk kategori OH.',
-  disabilitas:    'Dari jumlah terpapar, berapa yang memiliki disabilitas. Hanya untuk kategori OH.',
-  ropBefore:      'Seberapa sering kejadian ini biasanya terjadi. Makin tinggi angka, makin sering.',
-  rsBefore:       'Seberapa parah dampaknya kalau terjadi. Makin tinggi angka, makin parah — deskripsi berbeda per Kategori.',
-  levelBefore:    'Otomatis: ROP × RS. Level (Low/Medium/High/Very High) menentukan wajib-tidaknya pengendalian.',
-  riskControls:   'Tindakan mitigasi untuk menurunkan risiko. Klik "Edit Pengendalian" untuk isi Strategi, Kategori, Aktivitas Pengendalian, PIC, dan Due Date.',
-  levelAfter:     'Skor risiko setelah pengendalian. Baru turun kalau status pengendaliannya sudah "Done".',
+  workingArea:            'Area/lokasi kerja secara umum. Contoh: "Produksi Line 3", "Gudang Bahan Baku".',
+  jobTitle:               'Jabatan pekerja yang melakukan aktivitas ini. Contoh: "Operator Mesin".',
+  workstation:            'Mesin/instrumen spesifik yang dipakai saat aktivitas berlangsung.',
+  aktivitas:              'Deskripsikan pekerjaan yang sedang dilakukan saat risiko ini muncul.',
+  rutin:                  'R = Rutin (dilakukan terus-menerus). NR = Non-Rutin (sesekali/insidental).',
+  kategori:               'Pilih 1 dari 5 kategori risiko perusahaan. Menentukan pilihan bahaya & skala keparahan di kolom berikutnya.',
+  asumsiBahaya:           'Pilih bahaya spesifik dari daftar sesuai Kategori yang dipilih.',
+  dampak:                 'Jelaskan akibat yang mungkin terjadi kalau bahaya ini benar-benar terjadi.',
+  jmlTerpapar:            'Jumlah pekerja yang terpapar risiko ini. Hanya berlaku untuk kategori OH.',
+  ibuHamil:               'Dari jumlah terpapar, berapa yang sedang hamil. Hanya untuk kategori OH.',
+  ibuMenyusui:            'Dari jumlah terpapar, berapa yang sedang menyusui. Hanya untuk kategori OH.',
+  penyakitKhusus:         'Dari jumlah terpapar, berapa yang punya penyakit khusus. Hanya untuk kategori OH.',
+  disabilitas:            'Dari jumlah terpapar, berapa yang memiliki disabilitas. Hanya untuk kategori OH.',
+  ropBefore:              buildRopMatrixHtml,
+  rsBefore:                buildRsMatrixHtml,
+  levelBefore:            'Otomatis: ROP × RS. Menunjukkan seberapa besar risikonya (Low/Medium/High/Very High) — makin tinggi levelnya, biasanya makin banyak/kuat pengendalian yang perlu dipilih di Risk Controls.',
+  riskControls:           'Tindakan mitigasi untuk menurunkan risiko. Klik "Edit Pengendalian" untuk isi Strategi, Kategori, Aktivitas Pengendalian, PIC, dan Due Date.',
+  levelAfter:             'Skor risiko setelah pengendalian. Baru turun kalau status pengendaliannya sudah "Done".',
+  strategiPengendalian:   buildStrategiHelpHtml,
+  kategoriPengendalian:   buildKategoriPengendalianHelpHtml,
 };
 
 let _activeTooltipIcon = null;
+let _hideTooltipTimer  = null;
 
 function _getTooltipPopupEl() {
   let popup = document.getElementById('fieldTooltipPopup');
@@ -1666,6 +1749,11 @@ function _getTooltipPopupEl() {
     popup = document.createElement('div');
     popup.id = 'fieldTooltipPopup';
     popup.className = 'th-tooltip-popup';
+    // Biar popup yang panjang (matriks RS) bisa di-hover/scroll tanpa langsung hilang
+    popup.addEventListener('mouseenter', function() { clearTimeout(_hideTooltipTimer); });
+    popup.addEventListener('mouseleave', function() {
+      if (_activeTooltipIcon) hideFieldTooltip(_activeTooltipIcon);
+    });
     document.body.appendChild(popup);
   }
   return popup;
@@ -1693,17 +1781,31 @@ function _positionTooltipPopup(popup, iconEl) {
 }
 
 function showFieldTooltip(iconEl) {
-  const text = FIELD_HELP[iconEl.dataset.help];
-  if (!text) return;
+  clearTimeout(_hideTooltipTimer);
+  const entry = FIELD_HELP[iconEl.dataset.help];
+  if (!entry) return;
+  const isRich  = typeof entry === 'function';
+  const content = isRich ? entry() : entry;
+  if (!content) return;
   _activeTooltipIcon = iconEl;
   iconEl.classList.add('tt-active');
   const popup = _getTooltipPopupEl();
-  popup.textContent = text;
+  popup.classList.toggle('th-tooltip-rich', isRich);
+  if (isRich) popup.innerHTML = content; else popup.textContent = content;
   _positionTooltipPopup(popup, iconEl);
 }
 
+// Dipanggil dari onmouseleave ikon — pakai jeda kecil supaya mouse sempat
+// pindah ke dalam popup (perlu untuk tooltip ROP/RS yang bisa discroll).
 function hideFieldTooltip(iconEl) {
   if (_activeTooltipIcon !== iconEl) return;
+  clearTimeout(_hideTooltipTimer);
+  _hideTooltipTimer = setTimeout(function() { _hideFieldTooltipNow(iconEl); }, 150);
+}
+
+function _hideFieldTooltipNow(iconEl) {
+  if (_activeTooltipIcon !== iconEl) return;
+  clearTimeout(_hideTooltipTimer);
   iconEl.classList.remove('tt-active');
   const popup = document.getElementById('fieldTooltipPopup');
   if (popup) popup.style.display = 'none';
@@ -1712,15 +1814,15 @@ function hideFieldTooltip(iconEl) {
 
 function toggleFieldTooltip(e, iconEl) {
   e.stopPropagation();
-  if (_activeTooltipIcon === iconEl) { hideFieldTooltip(iconEl); return; }
-  if (_activeTooltipIcon) hideFieldTooltip(_activeTooltipIcon);
+  if (_activeTooltipIcon === iconEl) { _hideFieldTooltipNow(iconEl); return; }
+  if (_activeTooltipIcon) _hideFieldTooltipNow(_activeTooltipIcon);
   showFieldTooltip(iconEl);
 }
 
 document.addEventListener('click', function(e) {
   if (!_activeTooltipIcon) return;
   if (e.target.closest('.th-info-icon') || e.target.closest('#fieldTooltipPopup')) return;
-  hideFieldTooltip(_activeTooltipIcon);
+  _hideFieldTooltipNow(_activeTooltipIcon);
 });
 
 const _tableOuterElForTooltip = document.querySelector('.table-outer');
