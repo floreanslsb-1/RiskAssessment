@@ -2005,7 +2005,7 @@ function _renderTourStep() {
     }
   } else {
     _tourHighlightEl = null;
-    document.getElementById('tourSpotlight').classList.remove('active');
+    _getTourSpotlightEl().classList.remove('active');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
   _trackTourCardPosition();
