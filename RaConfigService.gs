@@ -47,7 +47,7 @@ function getRaConfig() {
     docNo:                  docNo,
     docRev:                 docRev,
     effectiveDate:          effDate,
-    effectiveDateFormatted: effDate ? Utilities.formatDate(effDate, Session.getScriptTimeZone(), 'dd/MM/yyyy') : '',
+    effectiveDateFormatted: effDate ? Utilities.formatDate(effDate, 'Asia/Jakarta', 'dd/MM/yyyy') : '',
     mainAppUrl:             mainUrl,
     kategoriList:       kategoriList,
     ropLabels:          ropLabels,
