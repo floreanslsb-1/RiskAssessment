@@ -179,22 +179,9 @@ function loadRaData(raId) {
       };
     });
 
-    const returnValue = { success: true, dept: dept, allRisks: allRisks };
-
-    // DIAGNOSTIC: coba serialize persis seperti yang akan dilakukan Apps
-    // Script ke browser. Kalau ini gagal di sini, kita tahu pasti masalahnya
-    // ada di ISI datanya (bukan di logika kode), dan pesan errornya akan
-    // kasih tahu bagian mana yang bermasalah.
-    try {
-      const serialized = JSON.stringify(returnValue);
-      Logger.log('DIAG serialize OK, panjang JSON=' + serialized.length);
-    } catch (serErr) {
-      Logger.log('DIAG SERIALIZE GAGAL: ' + serErr.message);
-    }
-
-    return returnValue;
+    return { success: true, dept: dept, allRisks: allRisks };
   } catch(err) {
-    Logger.log('DEBUG loadRaData ERROR: ' + err.message + ' | stack: ' + err.stack);
+    Logger.log('loadRaData error: ' + err.message + ' | stack: ' + err.stack);
     return { success: false, error: err.message, data: null };
   }
 }
@@ -222,7 +209,6 @@ function autoSaveRa(payload) {
 
     const col       = getRaColumnMap();
     const sheetData = sheet.getDataRange().getValues(); // FIX #7: read once
-    Logger.log('DEBUG autoSaveRa: baseRaId=' + baseRaId + ' allRisksCount=' + allRisks.length + ' col.RA_RA_ID=' + col['RA_RA_ID']);
 
     allRisks.forEach(function(r, i) {
       const rowRaId  = baseRaId + (i === 0 ? '' : '_' + i);
@@ -247,7 +233,7 @@ function autoSaveRa(payload) {
     updateMainSheetKajianStatus_(baseRaId, 'DRAFT');
     return { success: true, savedAt: now.toISOString(), raId: baseRaId };
   } catch(err) {
-    Logger.log('DEBUG autoSaveRa ERROR: ' + err.message + ' | stack: ' + err.stack);
+    Logger.log('autoSaveRa error: ' + err.message + ' | stack: ' + err.stack);
     return { success: false, error: err.message };
   } finally {
     lock.releaseLock();
@@ -699,29 +685,9 @@ function getColumnMap() {
   return map;
 }
 
-function debugUpdateStatus() {
-  const testRaId = 'RA/1KtAX2oYFUJiH-wzP9x6ibVkGpsG3ekWr';
-  Logger.log('Testing raId: ' + testRaId);
-  const result = findMainSheetRowByRaId_(testRaId);
-  Logger.log('findMainSheetRowByRaId_ result: ' + JSON.stringify(result));
-  if (!result) { Logger.log('ERROR: Row not found!'); return; }
-  Logger.log('Row number: ' + result.rowNumber + ' (sheet: ' + result.sheet.getName() + ')');
-  const col = getColumnMap();
-  Logger.log('Status_Kajian_Risiko column: ' + col.Status_Kajian_Risiko);
-  const rowData = result.sheet.getRange(result.rowNumber, 1, 1, result.sheet.getLastColumn()).getValues()[0];
-  Logger.log('RA_ID value in row: ' + rowData[col.RA_ID - 1]);
-  Logger.log('Status_Kajian_Risiko value: ' + rowData[col.Status_Kajian_Risiko - 1]);
-}
-
 function clearAllCaches() {
   const cache = CacheService.getScriptCache();
   cache.remove('COL_MAP');
   cache.remove('RA_COL_MAP');
   cache.remove('RA_CONFIG');
-}
-
-function TES_loadRaData_manual() {
-  const result = loadRaData('RA/1-4CeBSgNBeQPbJcdzW9WnYIMH3YHxywB'); // raId asli
-  Logger.log('Tipe: ' + typeof result);
-  Logger.log('Isi: ' + JSON.stringify(result));
 }
