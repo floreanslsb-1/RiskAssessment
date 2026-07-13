@@ -802,6 +802,7 @@ window.onload = function() {
 const DEFAULT_EMPTY_ROWS = 3;
 
 function onDataLoaded(result) {
+  console.log('DIAG result diterima browser:', JSON.stringify(result));
   if (result.dept) {
     dept = result.dept;
     document.getElementById('deptDisplay').textContent = dept;
