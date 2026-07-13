@@ -148,7 +148,11 @@ function parseDateOnly_(dateStr) {
   const y = parseInt(parts[0], 10);
   const m = parseInt(parts[1], 10) - 1;
   const d = parseInt(parts[2], 10);
-  return new Date(y, m, d, 12, 0, 0);
+  // Hitung langsung jam 12 siang WIB (UTC+7) dari basis UTC — supaya TIDAK
+  // bergantung pada timezone project Apps Script maupun timezone file
+  // spreadsheet (dua setting terpisah yang ternyata beda cukup jauh).
+  // Konsisten dengan bagian lain di app ini yang sudah hardcode 'Asia/Jakarta'.
+  return new Date(Date.UTC(y, m, d, 12 - 7, 0, 0));
 }
 
 // ── FUNGSI SIMPAN (dipanggil dari Admin Panel) ──────────────
