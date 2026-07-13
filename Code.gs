@@ -132,12 +132,24 @@ function loadRaData(raId) {
 
     if (matchedRows.length === 0) return { success: true, data: null, dept: dept };
 
+    // FIX: sel Saved_At kemungkinan objek Date asli (ditulis via new Date() +
+    // setValue()). google.script.run bisa gagal marshal objek Date secara
+    // diam-diam (browser terima null, server tidak error) — beda dengan
+    // JSON.stringify() manual yang otomatis convert Date jadi string ISO.
+    // Konversi eksplisit di sini supaya semua field date sudah jadi string
+    // sebelum keluar dari sandbox server.
+    function dateToStr_(v) {
+      return (v instanceof Date) ? v.toISOString() : v;
+    }
+    Logger.log('DIAG tipe savedAt row pertama: ' + typeof matchedRows[0].data[col['RA_SAVED_AT'] - 1] +
+      ' instanceof Date=' + (matchedRows[0].data[col['RA_SAVED_AT'] - 1] instanceof Date));
+
     const allRisks = matchedRows.map(function(r) {
       const row      = r.data;
       const controls = row[col['RA_RISK_CONTROLS'] - 1];
       return {
         raId:           row[col['RA_RA_ID']          - 1],
-        savedAt:        row[col['RA_SAVED_AT']       - 1],
+        savedAt:        dateToStr_(row[col['RA_SAVED_AT'] - 1]),
         status:         row[col['RA_STATUS']         - 1],
         workingArea:    row[col['RA_WORKING_AREA']   - 1],
         jobTitle:       row[col['RA_JOB_TITLE']      - 1],
@@ -706,4 +718,10 @@ function clearAllCaches() {
   cache.remove('COL_MAP');
   cache.remove('RA_COL_MAP');
   cache.remove('RA_CONFIG');
+}
+
+function TES_loadRaData_manual() {
+  const result = loadRaData('RA/1-4CeBSgNBeQPbJcdzW9WnYIMH3YHxywB'); // raId asli
+  Logger.log('Tipe: ' + typeof result);
+  Logger.log('Isi: ' + JSON.stringify(result));
 }
