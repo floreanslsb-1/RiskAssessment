@@ -101,14 +101,34 @@ function loadRaData(raId) {
     const baseRaId = raId.replace(/_\d+$/, '');
     Logger.log('DEBUG loadRaData: raId=' + raId + ' baseRaId=' + baseRaId + ' totalDataRows=' + data.length + ' col.RA_RA_ID=' + col['RA_RA_ID'] + ' dept=' + dept);
 
+    // DIAGNOSTIC MURNI — tidak mengubah logika pencocokan sama sekali,
+    // cuma membandingkan raId dari URL vs tiap RA_ID di sheet secara
+    // eksplisit: panjang string & kode karakter, buat nangkep spasi
+    // tersembunyi/karakter tak-kasat-mata yang tidak kelihatan di Logger.log biasa.
+    for (let d = 1; d < data.length; d++) {
+      const cellVal = data[d][col['RA_RA_ID'] - 1];
+      const cellStr = String(cellVal);
+      Logger.log('DIAG baris ' + (d + 1) + ': cellStr=[' + cellStr + '] len=' + cellStr.length +
+        ' vs baseRaId len=' + baseRaId.length +
+        ' equal(raw)=' + (cellStr === raId) +
+        ' equal(afterStripSuffix)=' + (cellStr.replace(/_\d+$/, '') === baseRaId) +
+        ' charCodes=' + Array.from(cellStr.replace(/_\d+$/, '')).map(function(c){return c.charCodeAt(0);}).join(','));
+    }
+    Logger.log('DIAG baseRaId charCodes=' + Array.from(baseRaId).map(function(c){return c.charCodeAt(0);}).join(','));
+
     const matchedRows = [];
     for (let i = 1; i < data.length; i++) {
       const rowRaId     = String(data[i][col['RA_RA_ID'] - 1]);
       const rowBaseRaId = rowRaId.replace(/_\d+$/, '');
+      Logger.log('DEBUG row ' + i + ': rawRaId=' + JSON.stringify(rowRaId) +
+                 ' rowBaseRaId=' + JSON.stringify(rowBaseRaId) +
+                 ' baseRaId=' + JSON.stringify(baseRaId) +
+                 ' match=' + (rowBaseRaId === baseRaId));
       if (rowBaseRaId === baseRaId) {
         matchedRows.push({ sheetRowIndex: i + 1, data: data[i] });
       }
     }
+    Logger.log('DEBUG matchedRows.length=' + matchedRows.length);
 
     if (matchedRows.length === 0) return { success: true, data: null, dept: dept };
 
@@ -147,7 +167,20 @@ function loadRaData(raId) {
       };
     });
 
-    return { success: true, dept: dept, allRisks: allRisks };
+    const returnValue = { success: true, dept: dept, allRisks: allRisks };
+
+    // DIAGNOSTIC: coba serialize persis seperti yang akan dilakukan Apps
+    // Script ke browser. Kalau ini gagal di sini, kita tahu pasti masalahnya
+    // ada di ISI datanya (bukan di logika kode), dan pesan errornya akan
+    // kasih tahu bagian mana yang bermasalah.
+    try {
+      const serialized = JSON.stringify(returnValue);
+      Logger.log('DIAG serialize OK, panjang JSON=' + serialized.length);
+    } catch (serErr) {
+      Logger.log('DIAG SERIALIZE GAGAL: ' + serErr.message);
+    }
+
+    return returnValue;
   } catch(err) {
     Logger.log('DEBUG loadRaData ERROR: ' + err.message + ' | stack: ' + err.stack);
     return { success: false, error: err.message, data: null };
