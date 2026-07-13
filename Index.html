@@ -2057,12 +2057,28 @@ function _positionTourCard() {
 // Posisi target berubah selama animasi scroll berjalan — jadi kartu ikut
 // dihitung ulang tiap frame selama ~500ms supaya "mengikuti" sampai posisi akhir.
 function _trackTourCardPosition() {
+  const maxDuration = 1200; // batas aman kalau scroll jarak jauh
   const start = performance.now();
-  const duration = 500;
+  let lastRect = _tourHighlightEl ? JSON.stringify(_tourHighlightEl.getBoundingClientRect()) : null;
+  let stableFrames = 0;
+
   function frame(now) {
     _positionTourCard();
     _positionTourSpotlight();
-    if (now - start < duration) requestAnimationFrame(frame);
+
+    let rectNow = _tourHighlightEl ? JSON.stringify(_tourHighlightEl.getBoundingClientRect()) : null;
+    if (rectNow === lastRect) {
+      stableFrames++;
+    } else {
+      stableFrames = 0;
+      lastRect = rectNow;
+    }
+
+    // Berhenti begitu posisi target sudah stabil ~6 frame berturut-turut (scroll sudah beres),
+    // atau begitu batas aman tercapai (jaga-jaga kalau tidak pernah "stabil").
+    if (stableFrames < 6 && (now - start) < maxDuration) {
+      requestAnimationFrame(frame);
+    }
   }
   requestAnimationFrame(frame);
 }
