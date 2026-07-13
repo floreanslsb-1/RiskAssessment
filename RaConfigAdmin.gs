@@ -70,7 +70,7 @@ function writeRaConfigToSheet_(config) {
   sheet.getRange(row, 2).setValue(config.docNo);
   ss.setNamedRange('RA_DOC_NO', sheet.getRange(row, 2)); row++;
   sheet.getRange(row, 1).setValue('Revisi');
-  sheet.getRange(row, 2).setValue(config.docRev);
+  sheet.getRange(row, 2).setNumberFormat('@').setValue(config.docRev);
   ss.setNamedRange('RA_DOC_REV', sheet.getRange(row, 2)); row++;
   sheet.getRange(row, 1).setValue('Tanggal_Berlaku');
   sheet.getRange(row, 2).setValue(config.effectiveDate);
@@ -137,6 +137,20 @@ function writeRaConfigToSheet_(config) {
   CacheService.getScriptCache().remove('RA_CONFIG');
 }
 
+// Parse string "YYYY-MM-DD" dari <input type="date"> secara manual — BUKAN
+// new Date(string), karena itu diinterpretasikan sebagai tengah malam UTC
+// dan bisa mundur 1 hari kalau timezone spreadsheet beda dari UTC. Jam
+// diset ke tengah hari (bukan 00:00) supaya aman dari pergeseran zona
+// waktu berapa jam pun, ke arah manapun.
+function parseDateOnly_(dateStr) {
+  if (!dateStr) return null;
+  const parts = dateStr.split('-');
+  const y = parseInt(parts[0], 10);
+  const m = parseInt(parts[1], 10) - 1;
+  const d = parseInt(parts[2], 10);
+  return new Date(y, m, d, 12, 0, 0);
+}
+
 // ── FUNGSI SIMPAN (dipanggil dari Admin Panel) ──────────────
 function saveRaInfoDokumen(data) {
   if (!isRaAdmin_()) return { success: false, error: 'Akses ditolak.' };
@@ -146,7 +160,7 @@ function saveRaInfoDokumen(data) {
     const config = getRaConfig();
     config.docNo = data.docNo;
     config.docRev = data.docRev;
-    config.effectiveDate = data.effectiveDate ? new Date(data.effectiveDate) : config.effectiveDate;
+    config.effectiveDate = data.effectiveDate ? parseDateOnly_(data.effectiveDate) : config.effectiveDate;
     config.mainAppUrl = data.mainAppUrl;
     writeRaConfigToSheet_(config);
     return { success: true };
